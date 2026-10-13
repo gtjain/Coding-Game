@@ -20,7 +20,7 @@ AUDIO = ROOT / "audio"
 
 
 def clip_name(engine, voice, text):
-    return hashlib.sha1(f"{engine}|{voice}|{text}".encode()).hexdigest()[:12] + ".mp3"
+    return hashlib.sha1(f"{engine}|{voice}|{text}".encode()).hexdigest()[:12] + ".mp3"   # engine includes the model for ElevenLabs
 
 
 def to_mp3(wav_path, mp3_path):
@@ -44,7 +44,7 @@ class Kokoro:
 
 
 class ElevenLabs:
-    def __init__(self, voice, model="eleven_multilingual_v2"):
+    def __init__(self, voice, model="eleven_v3"):
         self.key = os.environ.get("ELEVENLABS_API_KEY")
         if not self.key:
             sys.exit("Set ELEVENLABS_API_KEY to use the elevenlabs engine.")
@@ -53,7 +53,7 @@ class ElevenLabs:
     def render(self, text, out):
         req = urllib.request.Request(
             f"https://api.elevenlabs.io/v1/text-to-speech/{self.voice}?output_format=mp3_44100_64",
-            data=json.dumps({"text": text, "model_id": self.model, "voice_settings": {"stability": 0.5, "similarity_boost": 0.75, "style": 0.2}}).encode(),
+            data=json.dumps({"text": text, "model_id": self.model, "voice_settings": {"stability": 0.5}}).encode(),
             headers={"xi-api-key": self.key, "Content-Type": "application/json", "Accept": "audio/mpeg"})
         with urllib.request.urlopen(req) as r:
             Path(out).write_bytes(r.read())
@@ -64,19 +64,20 @@ def main():
     ap.add_argument("--engine", default="kokoro", choices=["kokoro", "elevenlabs"])
     ap.add_argument("--voice", default="hf_alpha")
     ap.add_argument("--speed", type=float, default=0.95)
+    ap.add_argument("--model", default="eleven_v3", help="ElevenLabs model id")
     ap.add_argument("--models", default=".")
     ap.add_argument("--samples", action="store_true", help="also record the voice samples for the grown-up screen")
     ap.add_argument("--sample-voices", default="", help="comma-separated name=voice_id pairs for ElevenLabs samples")
     a = ap.parse_args()
 
     phrases = json.loads((ROOT / "tools" / "phrases.json").read_text())
-    eng = Kokoro(a.models, a.voice, a.speed) if a.engine == "kokoro" else ElevenLabs(a.voice)
+    eng = Kokoro(a.models, a.voice, a.speed) if a.engine == "kokoro" else ElevenLabs(a.voice, a.model)
     if a.voice.startswith("h"):
         print("note: h* Kokoro voices are Hindi-trained; use af_*/bf_* for a neutral English accent")
     AUDIO.mkdir(exist_ok=True)
     manifest, made = {}, 0
     for text in phrases:
-        name = clip_name(a.engine, a.voice, text)
+        name = clip_name(a.engine + (":" + a.model if a.engine == "elevenlabs" else ""), a.voice, text)
         if not (AUDIO / name).exists():
             eng.render(text, AUDIO / name)
             made += 1
@@ -94,7 +95,7 @@ def main():
         for f in sdir.glob("*.mp3"): f.unlink()
         for pair in a.sample_voices.split(","):
             name, vid = pair.split("=")
-            ElevenLabs(vid).render("Hi! I'm your coding buddy. Help the bunny reach the carrot!", sdir / f"{name}.mp3")
+            ElevenLabs(vid, a.model).render("Hi! I'm your coding buddy. Help the bunny reach the carrot!", sdir / f"{name}.mp3")
         print("samples recorded")
     if a.samples and a.engine == "kokoro":
         (AUDIO / "samples").mkdir(exist_ok=True)
