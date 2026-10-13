@@ -1,0 +1,695 @@
+<title>Code Hoppers Prototypes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: sticky top bar + tabs; each prototype is a self-contained card with a play area, a feedback bar and design notes. Single bright look on purpose (kids' game). */
+:root{
+  --sky:#E6F2FF; --card:#FFFFFF; --ink:#1D2846; --muted:#55628A; --line:#D3E1F3;
+  --grass:#2BAE66; --grassDk:#1C8049; --sun:#FFC23C; --sunDk:#D39600;
+  --coral:#FF6150; --coralDk:#C63E2E; --grape:#7559FF; --grapeDk:#5137D4;
+  --field:#E3F5D6; --fieldLine:#C7E6B1; --sea:#3D8BFF; --seaDk:#1F66D6;
+  --display:"Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+body{background:var(--sky);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+h1,h2,h3{font-family:var(--display);line-height:1.1;text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--grape);outline-offset:2px}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--card);border-bottom:2px solid var(--line)}
+.topin{max-width:1100px;margin:0 auto;padding-block:10px;padding-inline:16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:22px;font-weight:800}
+.logo{display:grid;grid-template-columns:repeat(2,12px);gap:3px}
+.logo i{width:12px;height:12px;border-radius:4px;background:var(--grass)}
+.logo i:nth-child(2){background:var(--sun)}.logo i:nth-child(3){background:var(--grape)}.logo i:nth-child(4){background:var(--coral)}
+.tag{font-family:var(--body);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--grapeDk);background:#EEEAFF;border-radius:999px;padding:3px 10px}
+.who{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-bottom-width:4px;background:var(--card);border-radius:14px;padding:6px 12px;font-weight:800}
+.who .av{font-size:22px}
+.stat{display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
+.tabs{max-width:1100px;margin:0 auto;padding-inline:16px;display:flex;gap:6px;overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;font-weight:800;color:var(--muted);border-bottom:4px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--grass)}
+
+main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
+.intro{max-width:68ch;margin-bottom:22px}
+.intro h2{font-size:30px;margin-bottom:6px}
+.intro p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px;align-items:start}
+
+/* cards */
+.game,.panel{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0;position:relative}
+.ghead{display:flex;gap:12px;align-items:center}
+.code{font-family:var(--display);font-weight:800;font-size:18px;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;background:var(--grass);flex:none}
+[data-tier="older"] .code{background:var(--grape)}
+.ghead h3{font-size:24px}
+.skill{margin:0;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.speak{margin-left:auto;flex:none;width:44px;height:44px;border-radius:12px;border:2px solid var(--line);border-bottom-width:4px;background:var(--card);font-size:20px}
+.how{margin:0;color:var(--muted)}
+.play{display:flex;flex-direction:column;gap:12px;align-items:center}
+.hearts{align-self:flex-end;font-size:18px;letter-spacing:2px;min-height:24px}
+.notes{border-top:2px dashed var(--line);padding-top:10px;font-size:14px;color:var(--muted)}
+.notes summary{font-weight:800;color:var(--ink);cursor:pointer}
+.notes ul{margin:8px 0 0;padding-left:18px;display:grid;gap:4px}
+
+/* chunky buttons */
+.btn{border:0;border-radius:16px;padding:12px 20px;font-weight:800;font-size:17px;color:#fff;background:var(--grass);box-shadow:0 4px 0 var(--grassDk);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--grassDk)}
+.btn.warn{background:var(--coral);box-shadow:0 4px 0 var(--coralDk)}
+.btn.ghost{background:var(--card);color:var(--muted);box-shadow:0 4px 0 var(--line);border:2px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* board */
+.board{position:relative;display:grid;grid-template-columns:repeat(var(--w),1fr);width:min(100%,var(--bw,320px));aspect-ratio:var(--w)/var(--h);background:var(--field);border-radius:18px;overflow:hidden;border:3px solid var(--fieldLine)}
+.cell{border:1px solid var(--fieldLine);display:grid;place-items:center;font-size:var(--fs,30px)}
+.cell.wall{background:#CFE9BD}
+.sprite{position:absolute;display:grid;place-items:center;font-size:var(--fs,30px);width:calc(100% / var(--w));height:calc(100% / var(--h));transition:left .32s ease,top .32s ease;z-index:2}
+.sprite.bump{animation:wobble .45s}
+.sprite.win{animation:hop .6s 2}
+@keyframes wobble{25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+@keyframes hop{50%{transform:translateY(-30%) scale(1.15)}}
+
+/* program trays and blocks */
+.tray{width:100%;min-height:68px;border:3px dashed var(--line);border-radius:16px;padding:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;align-content:flex-start;background:#F7FAFF}
+.tray.active{border-color:var(--grape);background:#F3F0FF}
+.tray:empty::before{content:attr(data-empty);color:var(--muted);font-weight:700;font-size:14px;padding-left:4px}
+.blk{width:48px;height:48px;border-radius:12px;border:0;background:var(--grape);box-shadow:0 4px 0 var(--grapeDk);color:#fff;font-family:var(--display);font-weight:800;font-size:28px;display:grid;place-items:center;line-height:1}
+.blk.big{width:64px;height:64px;font-size:36px}
+.blk.now{background:var(--sun);box-shadow:0 4px 0 var(--sunDk);color:var(--ink)}
+.blk.bad{background:var(--coral);box-shadow:0 4px 0 var(--coralDk)}
+.palette{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.palette .blk{background:var(--sea);box-shadow:0 4px 0 var(--seaDk)}
+.loopbtn{width:auto;padding:0 14px;font-size:18px;background:var(--sun)!important;box-shadow:0 4px 0 var(--sunDk)!important;color:var(--ink)!important}
+.loop{border:3px solid var(--sun);border-radius:16px;background:#FFF6DC;padding:6px;display:flex;flex-direction:column;gap:6px;min-width:150px;flex:1 1 180px}
+.loop.now{box-shadow:0 0 0 3px var(--sunDk)}
+.loophead{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px}
+.loophead button{width:30px;height:30px;border-radius:10px;border:2px solid var(--sunDk);background:var(--card);font-weight:800}
+.loophead .n{font-family:var(--display);font-size:22px;min-width:20px;text-align:center;font-variant-numeric:tabular-nums}
+.loophead .x{margin-left:auto;border-color:var(--line)}
+.loop .tray{min-height:60px;background:var(--card)}
+.counter{font-size:14px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* result bar (bottom sheet style) */
+.result{border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;animation:slide .25s ease-out}
+.result.ok{background:#D9F7E6;color:var(--grassDk)}
+.result.bad{background:#FFE2DE;color:var(--coralDk)}
+.result div{display:flex;flex-direction:column;min-width:0}
+.result strong{font-family:var(--display);font-size:22px}
+.result span{font-weight:700}
+@keyframes slide{from{transform:translateY(10px);opacity:.3}}
+
+/* pattern train */
+.train{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;justify-content:center}
+.car{width:54px;height:54px;border-radius:12px;background:var(--card);border:3px solid var(--line);display:grid;place-items:center;font-size:30px;position:relative}
+.car::after{content:"";position:absolute;bottom:-9px;left:8px;width:12px;height:12px;border-radius:50%;background:var(--ink);box-shadow:24px 0 0 var(--ink)}
+.car.q{border-style:dashed;border-color:var(--grape);color:var(--grape);font-family:var(--display);font-weight:800}
+.car.eng{background:var(--coral);border-color:var(--coralDk);font-size:28px}
+.choices{display:flex;gap:14px;margin-top:8px}
+.choice{width:76px;height:76px;border-radius:18px;border:2px solid var(--line);border-bottom-width:5px;background:var(--card);font-size:40px}
+.choice.shake,.slot.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.dots{display:flex;gap:6px}
+.dots i{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--grass)}
+
+/* seed steps */
+.slots,.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}
+.slot{aspect-ratio:1;border:3px dashed var(--line);border-radius:16px;display:grid;place-items:center;font-size:36px;position:relative;background:#F7FAFF}
+.slot b{position:absolute;top:4px;left:8px;font-family:var(--display);font-size:16px;color:var(--muted)}
+.slot.full{border-style:solid;border-color:var(--grass);background:var(--card)}
+.slot.wrong{border-color:var(--coral)}
+.pcard{aspect-ratio:1;border-radius:16px;border:2px solid var(--line);border-bottom-width:5px;background:var(--card);font-size:36px}
+.pcard[disabled]{visibility:hidden}
+
+/* sorter */
+.belt{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:44px}
+.item svg{width:40px;height:40px;display:block}
+.item.wrong{outline:3px solid var(--coral);border-radius:10px}
+.rule{width:100%;border-radius:16px;background:#F3F0FF;border:2px solid #DCD3FF;padding:12px;display:grid;gap:8px;font-weight:800}
+.rule .kw{font-family:var(--display);color:var(--grapeDk);font-size:18px;margin-right:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:2px solid var(--line);border-bottom-width:4px;background:var(--card);border-radius:12px;padding:5px 10px;font-weight:800;display:inline-flex;gap:6px;align-items:center}
+.chip[aria-pressed="true"]{border-color:var(--grape);background:#EEEAFF}
+.chip svg{width:18px;height:18px}
+.baskets{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.basket{border:3px solid var(--line);border-radius:16px;min-height:96px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.basket h4{margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.basket .in{display:flex;flex-wrap:wrap;gap:4px}
+.goal{width:100%;text-align:center;font-weight:800;background:#FFF6DC;border-radius:14px;padding:8px}
+
+/* shell: profiles + path map */
+.panel h3{font-size:24px}
+.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.ptile{border:2px solid var(--line);border-bottom-width:5px;border-radius:18px;background:var(--card);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:800}
+.ptile .av{font-size:40px}
+.ptile small{color:var(--muted);font-weight:700}
+.ptile[aria-pressed="true"]{border-color:var(--grass);background:#EAF9F0}
+.ptile.add{border-style:dashed;color:var(--muted)}
+.form{display:grid;gap:10px;border-top:2px dashed var(--line);padding-top:12px}
+.form label{font-weight:800;font-size:14px}
+.form input{width:100%;font:inherit;font-weight:700;padding:10px 12px;border:2px solid var(--line);border-radius:12px}
+.avs,.ages{display:flex;flex-wrap:wrap;gap:6px}
+.avs button{width:48px;height:48px;font-size:28px;border-radius:12px;border:2px solid var(--line);background:var(--card)}
+.avs button[aria-pressed="true"],.ages button[aria-pressed="true"]{border-color:var(--grass);background:#EAF9F0}
+.ages button{border:2px solid var(--line);border-radius:12px;background:var(--card);padding:8px 14px;font-weight:800}
+.err{color:var(--coralDk);font-weight:700;font-size:14px;min-height:1em;margin:0}
+.path{display:flex;flex-direction:column;align-items:center;gap:18px;padding-block:8px}
+.unit{width:100%;border-radius:16px;background:var(--grass);color:#fff;padding:12px 16px}
+.unit.older{background:var(--grape)}
+.unit h4{margin:0;font-family:var(--display);font-size:20px}
+.unit p{margin:0;font-weight:700;opacity:.9;font-size:14px}
+.node{display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none}
+.node .dot{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:32px;background:var(--grass);box-shadow:0 6px 0 var(--grassDk)}
+.node.done .dot{background:var(--sun);box-shadow:0 6px 0 var(--sunDk)}
+.node.locked .dot{background:#D9E2EE;box-shadow:0 6px 0 #B9C6D8;filter:grayscale(1)}
+.node.current .dot{animation:bob 1.4s ease-in-out infinite}
+.node span{font-weight:800;font-size:14px}
+.node small{font-size:13px;color:var(--sunDk);min-height:1em}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.shellgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:20px;align-items:start}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+
+<header class="top">
+  <div class="topin">
+    <div class="brand"><span class="logo"><i></i><i></i><i></i><i></i></span>Code Hoppers <span class="tag">Prototype v1</span></div>
+    <button class="who" id="whoBtn" type="button"></button>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="shell">App shell</button>
+    <button role="tab" aria-selected="false" data-tab="young">Ages 4–6</button>
+    <button role="tab" aria-selected="false" data-tab="older">Ages 7–9</button>
+  </nav>
+</header>
+
+<main>
+  <!-- SHELL -->
+  <section data-panel="shell">
+    <div class="intro">
+      <h2>Who's playing, and where are they on the path</h2>
+      <p>Pick a player to see their learning path. Wins in the game tabs add XP to whoever is selected, so you can watch progress save. Pip and Juno are sample players.</p>
+    </div>
+    <div class="shellgrid">
+      <div class="panel">
+        <h3>Who's playing?</h3>
+        <div class="players" id="players"></div>
+        <form class="form" id="newForm" hidden>
+          <label for="pname">Name</label>
+          <input id="pname" maxlength="12" autocomplete="off" placeholder="Up to 12 letters">
+          <label>Pick a buddy</label>
+          <div class="avs" id="avs"></div>
+          <label>Age group</label>
+          <div class="ages" id="ages">
+            <button type="button" data-age="young" aria-pressed="true">4–6 years</button>
+            <button type="button" data-age="older" aria-pressed="false">7–9 years</button>
+          </div>
+          <p class="err" id="formErr"></p>
+          <div class="actions"><button type="button" class="btn ghost" id="cancelNew">Cancel</button><button class="btn" type="submit">Start playing</button></div>
+        </form>
+      </div>
+      <div class="panel">
+        <h3 id="pathTitle">Learning path</h3>
+        <div class="path" id="path"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AGES 4-6 -->
+  <section data-panel="young" hidden>
+    <div class="intro">
+      <h2>Ages 4–6: tap, no reading needed</h2>
+      <p>Big targets, pictures instead of words, a voice that reads the instructions (tap 🔊), and no hearts to lose. Every game here is one level.</p>
+    </div>
+    <div class="grid">
+      <article class="game" id="A1" data-tier="young" data-say="Help the bunny reach the carrot. Tap the arrows to make a path, then press go.">
+        <div class="ghead"><span class="code">A1</span><div><h3>Bunny Hop</h3><p class="skill">Sequencing</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
+        <p class="how">Tap arrows to plan the bunny's hops, then press Go. Tap a planned arrow to remove it.</p>
+        <div class="play">
+          <div class="boardHost"></div>
+          <div class="tray prog" data-empty="Your plan goes here"></div>
+          <div class="palette"></div>
+          <div class="actions"><button type="button" class="btn ghost clear">Clear</button><button type="button" class="btn go">▶ Go</button></div>
+        </div>
+        <div class="result" hidden></div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>Arrows move in screen directions (up is up). Turning left/right relative to the bunny is too abstract under 6.</li>
+          <li>The block lights up as it runs so kids link each block to each hop.</li>
+          <li>Later levels: longer paths, a second carrot to collect, then "hop twice" blocks.</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="A2" data-tier="young" data-say="What comes next on the train? Tap the right one.">
+        <div class="ghead"><span class="code">A2</span><div><h3>Pattern Train</h3><p class="skill">Patterns</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
+        <p class="how">Spot the pattern and pick the next train car. Three rounds, each one a little harder.</p>
+        <div class="play">
+          <div class="dots"></div>
+          <div class="train"></div>
+          <div class="choices"></div>
+        </div>
+        <div class="result" hidden></div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>Patterns are the seed of loops: "red, blue, again".</li>
+          <li>Round types: AB, AAB, ABC. Later: fill a gap in the middle, or build your own pattern.</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="A3" data-tier="young" data-say="How do we grow a flower? Tap the pictures in the right order.">
+        <div class="ghead"><span class="code">A3</span><div><h3>Seed Steps</h3><p class="skill">Order of steps</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
+        <p class="how">Put the picture cards in order: what happens first, next, last. Tap a filled box to take a card back.</p>
+        <div class="play">
+          <div class="slots"></div>
+          <div class="cards"></div>
+        </div>
+        <div class="result" hidden></div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>An algorithm is a recipe. Everyday routines (brushing teeth, making a sandwich) make that concrete.</li>
+          <li>Only the wrong boxes turn red, so kids fix part of the answer instead of starting over.</li>
+        </ul></details>
+      </article>
+    </div>
+  </section>
+
+  <!-- AGES 7-9 -->
+  <section data-panel="older" hidden>
+    <div class="intro">
+      <h2>Ages 7–9: real programming ideas</h2>
+      <p>Short text is fine here. Hearts make mistakes count, and stars reward shorter programs, the way coders aim for neat code.</p>
+    </div>
+    <div class="grid">
+      <article class="game" id="B1" data-tier="older" data-say="Get the frog to the lily pad. Use a repeat block to make your program short.">
+        <div class="ghead"><span class="code">B1</span><div><h3>Loop Maze</h3><p class="skill">Loops</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
+        <p class="how">Get the frog to the lily pad. Add a Repeat block, then tap arrows to fill it (tap the loop's box to fill it, the main box to add after it). 3 blocks or fewer earns ⭐⭐⭐.</p>
+        <div class="play">
+          <div class="hearts"></div>
+          <div class="boardHost"></div>
+          <div class="counter"></div>
+          <div class="tray prog" data-empty="Main program"></div>
+          <div class="palette"></div>
+          <div class="actions"><button type="button" class="btn ghost clear">Clear</button><button type="button" class="btn go">▶ Run</button></div>
+        </div>
+        <div class="result" hidden></div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>The staircase takes 10 single arrows. A Repeat ×5 of → ↑ takes 3 blocks. The star rule makes the loop worth discovering.</li>
+          <li>Next steps: nested loops, then "repeat until at the goal".</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="B2" data-tier="older" data-say="This program has a bug. Run it, find the wrong block, and tap it to fix it.">
+        <div class="ghead"><span class="code">B2</span><div><h3>Bug Hunt</h3><p class="skill">Debugging</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
+        <p class="how">The robot's program has one wrong block. Run it, watch where it goes wrong, then tap a block to turn it.</p>
+        <div class="play">
+          <div class="hearts"></div>
+          <div class="boardHost"></div>
+          <div class="tray prog"></div>
+          <div class="actions"><button type="button" class="btn go">▶ Run</button></div>
+        </div>
+        <div class="result" hidden></div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>Reading code is a separate skill from writing it. Debugging builds it.</li>
+          <li>The failing block flashes red so the kid can trace cause and effect.</li>
+          <li>Later: two bugs, a missing block, or an extra block.</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="B3" data-tier="older" data-say="Build a rule so the sorting machine puts every shape in the right basket.">
+        <div class="ghead"><span class="code">B3</span><div><h3>Sorting Machine</h3><p class="skill">If / else</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
+        <p class="how">Pick the condition that makes the machine sort correctly, then run it. Two puzzles.</p>
+        <div class="play">
+          <div class="goal"></div>
+          <div class="belt"></div>
+          <div class="rule">
+            <div><span class="kw">IF</span>it is…</div>
+            <div class="chips"></div>
+            <div><span class="kw">THEN</span>⬅ left basket</div>
+            <div><span class="kw">ELSE</span>right basket ➡</div>
+          </div>
+          <div class="baskets"><div class="basket"><h4>⬅ Left</h4><div class="in L"></div></div><div class="basket"><h4>Right ➡</h4><div class="in R"></div></div></div>
+          <div class="actions"><button type="button" class="btn go">▶ Run machine</button></div>
+        </div>
+        <div class="result" hidden></div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>The skill is choosing which property matters (shape or colour), the core of writing a condition.</li>
+          <li>Later: AND/OR ("blue and a star"), then ELSE IF with three baskets.</li>
+        </ul></details>
+      </article>
+    </div>
+  </section>
+</main>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const DIRS={U:[0,-1,'↑'],R:[1,0,'→'],D:[0,1,'↓'],L:[-1,0,'←']};
+const ORDER=['U','R','D','L'];
+
+function say(text){
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.rate=.9; u.pitch=1.1; speechSynthesis.speak(u);}catch(e){}
+}
+$$('.speak').forEach(b=>b.onclick=()=>say(b.closest('.game').dataset.say));
+
+/* ---------- profiles & progress ---------- */
+const AVATARS=['🐰','🐸','🦊','🐼','🐯','🐙','🦄','🐢'];
+const GAMES={
+  young:[{id:'A1',name:'Bunny Hop',icon:'🥕'},{id:'A2',name:'Pattern Train',icon:'🚂'},{id:'A3',name:'Seed Steps',icon:'🌻'},{id:null,name:'Hop Twice',icon:'🔒'}],
+  older:[{id:'B1',name:'Loop Maze',icon:'🔁'},{id:'B2',name:'Bug Hunt',icon:'🐞'},{id:'B3',name:'Sorting Machine',icon:'🧺'},{id:null,name:'Functions',icon:'🔒'}]
+};
+const KEY='code-hoppers-v1';
+function load(){
+  try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s&&Array.isArray(s.profiles)) return s; }catch(e){}
+  return {current:'Pip',profiles:[
+    {name:'Pip',avatar:'🐰',age:'young',xp:20,streak:3,last:null,done:{A1:3}},
+    {name:'Juno',avatar:'🦊',age:'older',xp:45,streak:5,last:null,done:{B1:2,B2:3}}
+  ]};
+}
+let S=load();
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){} }
+const cur=()=>S.profiles.find(p=>p.name===S.current)||null;
+
+function renderWho(){
+  const p=cur(), w=$('#whoBtn');
+  w.innerHTML=p?`<span class="av">${p.avatar}</span>${p.name}<span class="stat">⭐ ${p.xp}</span><span class="stat">🔥 ${p.streak}</span>`:'Pick a player';
+}
+$('#whoBtn').onclick=()=>showTab('shell');
+
+function renderPlayers(){
+  const box=$('#players'); box.innerHTML='';
+  S.profiles.forEach(p=>{
+    const b=document.createElement('button'); b.type='button'; b.className='ptile';
+    b.setAttribute('aria-pressed',p.name===S.current);
+    b.innerHTML=`<span class="av">${p.avatar}</span>${p.name}<small>${p.age==='young'?'Ages 4–6':'Ages 7–9'} · ⭐ ${p.xp}</small>`;
+    b.onclick=()=>{S.current=p.name;save();refresh();};
+    box.appendChild(b);
+  });
+  const add=document.createElement('button'); add.type='button'; add.className='ptile add';
+  add.innerHTML='<span class="av">＋</span>New player';
+  add.onclick=()=>{$('#newForm').hidden=false;$('#pname').focus();};
+  box.appendChild(add);
+}
+function renderPath(){
+  const p=cur(), box=$('#path'); box.innerHTML='';
+  if(!p){box.textContent='Pick a player to see their path.';return;}
+  $('#pathTitle').textContent=`${p.name}'s path`;
+  const older=p.age==='older';
+  box.insertAdjacentHTML('beforeend',`<div class="unit ${older?'older':''}"><h4>Unit 1 · ${older?'Loops, bugs and choices':'First steps'}</h4><p>${older?'Ages 7–9':'Ages 4–6'}</p></div>`);
+  const offs=[0,56,0,-56];
+  let found=false;
+  GAMES[p.age].forEach((g,i)=>{
+    const done=g.id&&p.done[g.id];
+    let st='locked';
+    if(done) st='done'; else if(!found&&g.id){st='current';found=true;}
+    else if(g.id) st='open';
+    const n=document.createElement('button'); n.type='button'; n.className='node '+st;
+    n.style.transform=`translateX(${offs[i%4]}px)`;
+    n.innerHTML=`<span class="dot">${g.icon}</span><span>${g.name}</span><small>${done?'⭐'.repeat(done):''}</small>`;
+    if(g.id) n.onclick=()=>{showTab(p.age);document.getElementById(g.id).scrollIntoView({behavior:'smooth',block:'start'});};
+    else n.disabled=true;
+    box.appendChild(n);
+  });
+}
+function refresh(){renderWho();renderPlayers();renderPath();}
+
+// new player form
+let newAv='🐰', newAge='young';
+AVATARS.forEach(a=>{const b=document.createElement('button');b.type='button';b.textContent=a;b.setAttribute('aria-pressed',a===newAv);b.onclick=()=>{newAv=a;$$('#avs button').forEach(x=>x.setAttribute('aria-pressed',x===b));};$('#avs').appendChild(b);});
+$$('#ages button').forEach(b=>b.onclick=()=>{newAge=b.dataset.age;$$('#ages button').forEach(x=>x.setAttribute('aria-pressed',x===b));});
+$('#cancelNew').onclick=()=>{$('#newForm').hidden=true;$('#formErr').textContent='';};
+$('#newForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=$('#pname').value.trim();
+  if(!name){$('#formErr').textContent='Type a name first.';return;}
+  if(S.profiles.some(p=>p.name.toLowerCase()===name.toLowerCase())){$('#formErr').textContent='That name is taken. Try another one.';return;}
+  S.profiles.push({name,avatar:newAv,age:newAge,xp:0,streak:0,last:null,done:{}});
+  S.current=name; save();
+  $('#pname').value=''; $('#formErr').textContent=''; $('#newForm').hidden=true; refresh();
+});
+
+function award(id,stars){
+  const p=cur(); if(!p) return 'Pick a player on the App shell tab to save progress.';
+  p.xp+=10+stars*5;
+  p.done[id]=Math.max(p.done[id]||0,stars);
+  const today=new Date().toDateString();
+  if(p.last!==today){p.streak+=1;p.last=today;}
+  save(); refresh();
+  return `+${10+stars*5} XP for ${p.name}`;
+}
+
+/* ---------- tabs ---------- */
+function showTab(t){
+  $$('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+  $$('[data-panel]').forEach(s=>s.hidden=s.dataset.panel!==t);
+  try{speechSynthesis.cancel();}catch(e){}
+}
+$$('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+
+/* ---------- shared UI ---------- */
+function result(card,{ok,title,msg,btn,onBtn}){
+  const r=$('.result',card);
+  r.className='result '+(ok?'ok':'bad');
+  r.innerHTML=`<div><strong>${title}</strong><span>${msg}</span></div><button type="button" class="btn ${ok?'':'warn'}">${btn}</button>`;
+  r.hidden=false;
+  $('button',r).onclick=()=>{r.hidden=true;onBtn&&onBtn();};
+  if(card.dataset.tier==='young') say(title);
+}
+function hideResult(card){$('.result',card).hidden=true;}
+function hearts(el,max=3){
+  let h=max; const draw=()=>{el.textContent='❤️'.repeat(h)+'🤍'.repeat(max-h);el.setAttribute('aria-label',h+' hearts left');};
+  draw(); return {lose(){h=Math.max(0,h-1);draw();return h;},reset(){h=max;draw();}};
+}
+function stars(n){return '⭐'.repeat(n)+'☆'.repeat(3-n);}
+
+/* ---------- grid board ---------- */
+function makeBoard(host,cfg){
+  const {w,h,start,goal,walls=[],hero,prize,wallIcon='🌳',fs,bw}=cfg;
+  const wallSet=new Set(walls.map(([x,y])=>x+','+y));
+  const b=document.createElement('div'); b.className='board';
+  b.style.setProperty('--w',w); b.style.setProperty('--h',h);
+  if(fs) b.style.setProperty('--fs',fs); if(bw) b.style.setProperty('--bw',bw);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const c=document.createElement('div'); const k=x+','+y;
+    c.className='cell'+(wallSet.has(k)?' wall':'');
+    if(wallSet.has(k)) c.textContent=wallIcon;
+    if(x===goal.x&&y===goal.y) c.textContent=prize;
+    b.appendChild(c);
+  }
+  const s=document.createElement('div'); s.className='sprite'; s.textContent=hero; b.appendChild(s);
+  host.innerHTML=''; host.appendChild(b);
+  let pos;
+  const place=(x,y)=>{s.style.left=(x*100/w)+'%';s.style.top=(y*100/h)+'%';};
+  const reset=()=>{s.classList.remove('bump','win');pos={...start};place(pos.x,pos.y);};
+  reset();
+  async function run(steps,onStep){
+    reset(); await sleep(250);
+    for(let i=0;i<steps.length;i++){
+      onStep(i);
+      const [dx,dy]=DIRS[steps[i].d], nx=pos.x+dx, ny=pos.y+dy;
+      if(nx<0||ny<0||nx>=w||ny>=h||wallSet.has(nx+','+ny)){
+        place(pos.x+dx*.3,pos.y+dy*.3); await sleep(160); place(pos.x,pos.y);
+        s.classList.add('bump'); await sleep(450); return {ok:false,step:i};
+      }
+      pos={x:nx,y:ny}; place(nx,ny); await sleep(400);
+      if(nx===goal.x&&ny===goal.y){onStep(-1);s.classList.add('win');return {ok:true};}
+    }
+    onStep(-1); return {ok:false,step:null};
+  }
+  return {run,reset};
+}
+function arrowPalette(host,onPick,big){
+  ORDER.forEach(d=>{const b=document.createElement('button');b.type='button';b.className='blk'+(big?' big':'');b.textContent=DIRS[d][2];b.setAttribute('aria-label','Add '+{U:'up',R:'right',D:'down',L:'left'}[d]);b.onclick=()=>onPick(d);host.appendChild(b);});
+}
+
+/* ---------- A1 Bunny Hop ---------- */
+(function(){
+  const card=$('#A1'), tray=$('.prog',card);
+  const board=makeBoard($('.boardHost',card),{w:4,h:4,start:{x:0,y:3},goal:{x:3,y:0},walls:[[1,1],[2,1],[1,3]],hero:'🐰',prize:'🥕',wallIcon:'🪨',fs:'clamp(24px,8vw,40px)'});
+  let prog=[], tries=0, busy=false;
+  const draw=()=>{tray.innerHTML='';prog.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.className='blk big';b.textContent=DIRS[d][2];b.onclick=()=>{if(busy)return;prog.splice(i,1);draw();};tray.appendChild(b);});};
+  arrowPalette($('.palette',card),d=>{if(busy||prog.length>=8)return;prog.push(d);draw();hideResult(card);},true);
+  $('.clear',card).onclick=()=>{if(busy)return;prog=[];draw();board.reset();hideResult(card);};
+  $('.go',card).onclick=async()=>{
+    if(busy||!prog.length)return; busy=true; tries++; hideResult(card);
+    const els=$$('.blk',tray);
+    const r=await board.run(prog.map(d=>({d})),i=>els.forEach((e,j)=>e.classList.toggle('now',j===i)));
+    busy=false;
+    if(r.ok){const st=tries===1?3:tries===2?2:1; result(card,{ok:true,title:'Yummy! You did it!',msg:stars(st)+' '+award('A1',st),btn:'Play again',onBtn:()=>{prog=[];tries=0;draw();board.reset();}});}
+    else{ if(r.step!=null) els[r.step]?.classList.add('bad');
+      result(card,{ok:false,title:r.step!=null?'Bonk! A rock!':'Almost! Keep hopping',msg:'Change your plan and try again.',btn:'Try again',onBtn:()=>{board.reset();draw();}});}
+  };
+})();
+
+/* ---------- A2 Pattern Train ---------- */
+(function(){
+  const card=$('#A2');
+  const rounds=[
+    {seq:['🔴','🔵','🔴','🔵','🔴'],ans:'🔵',opts:['🟢','🔵','🔴']},
+    {seq:['🐶','🐶','🐱','🐶','🐶'],ans:'🐱',opts:['🐶','🐰','🐱']},
+    {seq:['🍎','🍌','🍇','🍎','🍌'],ans:'🍇',opts:['🍇','🍎','🍌']}
+  ];
+  let r=0, misses=0;
+  function draw(){
+    const R=rounds[r];
+    $('.dots',card).innerHTML=rounds.map((_,i)=>`<i class="${i<r?'on':''}"></i>`).join('');
+    $('.train',card).innerHTML='<div class="car eng">🚂</div>'+R.seq.map(x=>`<div class="car">${x}</div>`).join('')+'<div class="car q">?</div>';
+    const ch=$('.choices',card); ch.innerHTML='';
+    R.opts.forEach(o=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=o;
+      b.onclick=async()=>{
+        if(o===R.ans){const q=$('.car.q',card);q.classList.remove('q');q.textContent=o;say('Yes!');await sleep(800);r++;
+          if(r<rounds.length) draw();
+          else{$('.dots',card).innerHTML=rounds.map(()=>'<i class="on"></i>').join('');const st=misses===0?3:misses<3?2:1;
+            result(card,{ok:true,title:'All aboard! You did it!',msg:stars(st)+' '+award('A2',st),btn:'Play again',onBtn:()=>{r=0;misses=0;draw();}});}
+        } else {misses++;b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');say('Try again');}
+      };ch.appendChild(b);});
+  }
+  draw();
+})();
+
+/* ---------- A3 Seed Steps ---------- */
+(function(){
+  const card=$('#A3');
+  const steps=['🕳️','🌰','💧','🌻'];  // dig, seed, water, flower
+  const names={'🕳️':'dig a hole','🌰':'plant the seed','💧':'water it','🌻':'flower grows'};
+  const shuffled=['💧','🌻','🕳️','🌰'];
+  let placed=[null,null,null,null], tries=0;
+  function draw(){
+    const sl=$('.slots',card); sl.innerHTML='';
+    placed.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='slot'+(p?' full':'');b.innerHTML=`<b>${i+1}</b>${p||''}`;b.setAttribute('aria-label','Box '+(i+1)+(p?': '+names[p]:' empty'));
+      b.onclick=()=>{if(!p)return;placed[i]=null;hideResult(card);draw();};sl.appendChild(b);});
+    const cs=$('.cards',card); cs.innerHTML='';
+    shuffled.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='pcard';b.textContent=c;b.setAttribute('aria-label',names[c]);b.disabled=placed.includes(c);
+      b.onclick=()=>{const i=placed.indexOf(null);if(i<0)return;placed[i]=c;say(names[c]);draw();if(!placed.includes(null))check();};cs.appendChild(b);});
+  }
+  function check(){
+    tries++;
+    const wrong=placed.map((p,i)=>p!==steps[i]);
+    if(!wrong.some(Boolean)){const st=tries===1?3:tries===2?2:1;result(card,{ok:true,title:'Your flower grew!',msg:stars(st)+' '+award('A3',st),btn:'Play again',onBtn:()=>{placed=[null,null,null,null];tries=0;draw();}});return;}
+    $$('.slot',card).forEach((s,i)=>{if(wrong[i]){s.classList.add('wrong','shake');}});
+    result(card,{ok:false,title:'Hmm, not quite',msg:'Tap the red boxes to take those cards back.',btn:'OK',onBtn:()=>{}});
+  }
+  draw();
+})();
+
+/* ---------- B1 Loop Maze ---------- */
+(function(){
+  const card=$('#B1'), tray=$('.prog',card);
+  const path=[[0,5],[1,5],[1,4],[2,4],[2,3],[3,3],[3,2],[4,2],[4,1],[5,1],[5,0]];
+  const ps=new Set(path.map(p=>p+''));
+  const walls=[];for(let y=0;y<6;y++)for(let x=0;x<6;x++)if(!ps.has(x+','+y))walls.push([x,y]);
+  const board=makeBoard($('.boardHost',card),{w:6,h:6,start:{x:0,y:5},goal:{x:5,y:0},walls,hero:'🐸',prize:'🪷',wallIcon:'🌿',fs:'clamp(16px,5.4vw,28px)',bw:'340px'});
+  const H=hearts($('.hearts',card));
+  let prog=[], target=null, busy=false; // target: null = main, else a loop object
+  const count=()=>prog.reduce((n,b)=>n+(b.t==='loop'?1+b.body.length:1),0);
+  function blockBtn(d,list,i){const b=document.createElement('button');b.type='button';b.className='blk';b.textContent=DIRS[d][2];
+    b.onclick=e=>{e.stopPropagation();if(busy)return;list.splice(i,1);draw();};return b;}
+  function draw(){
+    tray.innerHTML=''; tray.classList.toggle('active',target===null);
+    prog.forEach((b,i)=>{
+      if(b.t==='move'){const el=blockBtn(b.d,prog,i);b.el=el;tray.appendChild(el);return;}
+      const L=document.createElement('div');L.className='loop';b.el=L;
+      L.innerHTML=`<div class="loophead">🔁 Repeat <button type="button" class="minus" aria-label="Fewer">−</button><span class="n">${b.n}</span><button type="button" class="plus" aria-label="More">+</button> times<button type="button" class="x" aria-label="Remove loop">✕</button></div>`;
+      const inner=document.createElement('div');inner.className='tray'+(target===b?' active':'');inner.dataset.empty='Tap here, then add arrows';
+      b.body.forEach((m,j)=>{const el=blockBtn(m.d,b.body,j);m.el=el;inner.appendChild(el);});
+      inner.onclick=e=>{e.stopPropagation();target=b;draw();};
+      $('.minus',L).onclick=e=>{e.stopPropagation();b.n=Math.max(2,b.n-1);draw();};
+      $('.plus',L).onclick=e=>{e.stopPropagation();b.n=Math.min(9,b.n+1);draw();};
+      $('.x',L).onclick=e=>{e.stopPropagation();prog.splice(i,1);if(target===b)target=null;draw();};
+      L.appendChild(inner);tray.appendChild(L);
+    });
+    const c=count();$('.counter',card).textContent=`Blocks used: ${c} · ⭐⭐⭐ needs 3 or fewer`;
+  }
+  tray.onclick=()=>{if(busy)return;target=null;draw();};
+  const pal=$('.palette',card);
+  arrowPalette(pal,d=>{if(busy||count()>=12)return;(target?target.body:prog).push({t:'move',d});hideResult(card);draw();});
+  const lb=document.createElement('button');lb.type='button';lb.className='blk loopbtn';lb.textContent='🔁 Repeat';
+  lb.onclick=()=>{if(busy||count()>=12)return;const L={t:'loop',n:2,body:[]};prog.push(L);target=L;hideResult(card);draw();};
+  pal.appendChild(lb);
+  $('.clear',card).onclick=()=>{if(busy)return;prog=[];target=null;draw();board.reset();hideResult(card);};
+  $('.go',card).onclick=async()=>{
+    if(busy||!prog.length)return; busy=true; hideResult(card);
+    const steps=[];prog.forEach(b=>{if(b.t==='move')steps.push({d:b.d,el:b.el});else for(let k=0;k<b.n;k++)b.body.forEach(m=>steps.push({d:m.d,el:m.el,loop:b.el}));});
+    const all=$$('.blk,.loop',tray);
+    const r=await board.run(steps,i=>{all.forEach(e=>e.classList.remove('now'));if(i>=0){steps[i].el.classList.add('now');steps[i].loop?.classList.add('now');}});
+    busy=false;
+    if(r.ok){const c=count(),st=c<=3?3:c<=6?2:1;
+      result(card,{ok:true,title:'Splash! Made it',msg:`${stars(st)} with ${c} blocks. ${award('B1',st)}`,btn:'Play again',onBtn:()=>{prog=[];target=null;draw();board.reset();H.reset();}});}
+    else{ if(r.step!=null)steps[r.step].el.classList.add('bad');
+      const left=H.lose();
+      result(card,{ok:false,title:r.step!=null?'Splat into the reeds':'Not there yet',msg:left?'You lost a heart. Fix the program and run again.':'Out of hearts. In the full game this would end the lesson.',btn:left?'Try again':'Refill hearts',onBtn:()=>{board.reset();draw();if(!left)H.reset();}});}
+  };
+  draw();
+})();
+
+/* ---------- B2 Bug Hunt ---------- */
+(function(){
+  const card=$('#B2'), tray=$('.prog',card);
+  const path=[[0,0],[1,0],[2,0],[2,1],[2,2],[3,2],[3,3],[4,3],[4,4]];
+  const ps=new Set(path.map(p=>p+''));
+  const walls=[];for(let y=0;y<5;y++)for(let x=0;x<5;x++)if(!ps.has(x+','+y))walls.push([x,y]);
+  const board=makeBoard($('.boardHost',card),{w:5,h:5,start:{x:0,y:0},goal:{x:4,y:4},walls,hero:'🤖',prize:'🔋',wallIcon:'🧱',fs:'clamp(18px,6.4vw,32px)'});
+  const H=hearts($('.hearts',card));
+  const BUGGY=['R','R','D','D','D','D','R','D'];
+  let prog=[...BUGGY], busy=false, edits=0, fails=0;
+  function draw(){
+    tray.innerHTML='';
+    prog.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.className='blk';b.textContent=DIRS[d][2];b.setAttribute('aria-label','Block '+(i+1)+', tap to turn');
+      b.onclick=()=>{if(busy)return;prog[i]=ORDER[(ORDER.indexOf(d)+1)%4];edits++;hideResult(card);board.reset();draw();};tray.appendChild(b);});
+  }
+  $('.go',card).onclick=async()=>{
+    if(busy)return; busy=true; hideResult(card);
+    const els=$$('.blk',tray);
+    const r=await board.run(prog.map(d=>({d})),i=>els.forEach((e,j)=>e.classList.toggle('now',j===i)));
+    busy=false;
+    if(r.ok){const st=fails===0?3:fails===1?2:1;
+      result(card,{ok:true,title:'Bug squashed!',msg:`${stars(st)} ${award('B2',st)}`,btn:'Play again',onBtn:()=>{prog=[...BUGGY];edits=0;fails=0;draw();board.reset();H.reset();}});}
+    else{ if(r.step!=null)els[r.step]?.classList.add('bad');
+      if(edits===0){result(card,{ok:false,title:'There it is',msg:'The red block is where the robot crashed. The bug is at or before it.',btn:'Find the bug',onBtn:()=>{board.reset();draw();}});return;}
+      fails++; const left=H.lose();
+      result(card,{ok:false,title:'Still buggy',msg:left?'You lost a heart. Look at the red block.':'Out of hearts.',btn:left?'Try again':'Refill hearts',onBtn:()=>{board.reset();draw();if(!left)H.reset();}});}
+  };
+  draw();
+})();
+
+/* ---------- B3 Sorting Machine ---------- */
+(function(){
+  const card=$('#B3');
+  const COL={red:'#FF6150',blue:'#3D8BFF',yellow:'#FFC23C'};
+  const star=(()=>{const p=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?7:17;p.push((20+r*Math.cos(a)).toFixed(1)+','+(21+r*Math.sin(a)).toFixed(1));}return p.join(' ');})();
+  const shape=(s,c)=>`<svg viewBox="0 0 40 40" aria-hidden="true">${s==='star'?`<polygon points="${star}" fill="${c}"/>`:s==='circle'?`<circle cx="20" cy="20" r="15" fill="${c}"/>`:`<rect x="6" y="6" width="28" height="28" rx="5" fill="${c}"/>`}</svg>`;
+  const items=[['star','red'],['circle','blue'],['star','yellow'],['circle','red'],['star','blue'],['square','yellow'],['square','blue']];
+  const goals=[{text:'Goal: every ⭐ star goes in the LEFT basket.',test:([s])=>s==='star'},{text:'Goal: every blue shape goes in the LEFT basket.',test:([,c])=>c==='blue'}];
+  const conds=[{k:'color',v:'red',label:'red'},{k:'color',v:'blue',label:'blue'},{k:'color',v:'yellow',label:'yellow'},{k:'shape',v:'star',label:'a star'},{k:'shape',v:'circle',label:'a circle'},{k:'shape',v:'square',label:'a square'}];
+  let g=0, pick=null, busy=false, tries=0;
+  function draw(){
+    $('.goal',card).textContent=`Puzzle ${g+1} of ${goals.length}. ${goals[g].text}`;
+    $('.belt',card).innerHTML=items.map(([s,c])=>`<span class="item">${shape(s,COL[c])}</span>`).join('');
+    $('.in.L',card).innerHTML='';$('.in.R',card).innerHTML='';
+    const ch=$('.chips',card);ch.innerHTML='';
+    conds.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='chip';b.setAttribute('aria-pressed',pick===c);
+      b.innerHTML=(c.k==='color'?`<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="${COL[c.v]}"/></svg>`:shape(c.v,'#55628A'))+c.label;
+      b.onclick=()=>{if(busy)return;pick=c;hideResult(card);draw();};ch.appendChild(b);});
+  }
+  $('.go',card).onclick=async()=>{
+    if(busy)return;
+    if(!pick){result(card,{ok:false,title:'Pick a condition',msg:'Choose what the machine should check.',btn:'OK'});return;}
+    busy=true; hideResult(card); tries++; draw();
+    const belt=$$('.item',$('.belt',card)); let wrong=0;
+    for(let i=0;i<items.length;i++){
+      const it=items[i], val=pick.k==='color'?it[1]:it[0], goLeft=val===pick.v;
+      const el=belt[i]; $(goLeft?'.in.L':'.in.R',card).appendChild(el);
+      if(goLeft!==goals[g].test(it)){el.classList.add('wrong');wrong++;}
+      await sleep(350);
+    }
+    busy=false;
+    if(!wrong){
+      if(g<goals.length-1){result(card,{ok:true,title:'Sorted!',msg:'Ready for the next puzzle?',btn:'Next puzzle',onBtn:()=>{g++;pick=null;draw();}});}
+      else{const st=tries<=2?3:tries<=4?2:1;result(card,{ok:true,title:'Machine master!',msg:`${stars(st)} ${award('B3',st)}`,btn:'Play again',onBtn:()=>{g=0;pick=null;tries=0;draw();}});}
+    } else result(card,{ok:false,title:`${wrong} in the wrong basket`,msg:'The red-ringed shapes went the wrong way. Try a different condition.',btn:'Try again',onBtn:()=>{draw();}});
+  };
+  draw();
+})();
+
+refresh();
+</script>
