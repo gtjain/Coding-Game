@@ -56,7 +56,7 @@
     return L;
   }
   const micHTML = `<div class="mic" data-state="off"><button type="button" class="micbtn" aria-label="Start or stop listening">🎤</button><p class="heard">Tap the microphone to talk.</p></div>`;
-  const wordButtons = (words, keys) => keys.map(k => `<button type="button" class="blk wide sayword" data-cmd="${k}">${words[k].glyph} ${words[k].label}</button>`).join('');
+  const wordButtons = (words, keys) => keys.map(k => `<button type="button" class="blk wide sayword" data-cmd="${k}"${k === 'GO' ? ' data-sfx="none"' : ''}>${words[k].glyph} ${words[k].label}</button>`).join('');
 
   /* Each word moves at once (Talk to Bunny) */
   CH.engine('voiceMove', (root, cfg, g) => {
@@ -71,7 +71,9 @@
     }); }); };
     const L = micUI(root, cfg, g, run);
     $$('.sayword', root).forEach(b => b.onclick = () => run([b.dataset.cmd]));
-    return { unmount() { L.stop(); } };
+    return { unmount() { L.stop(); }, solve() {
+      return `Say: <b>${CH.solvePath(cfg.board).map(d => cfg.words[d].label).join(', ')}</b>. Or tap those words.`;
+    } };
   });
 
   /* Words build a program; "go" runs it (Robot Radio) */
@@ -84,10 +86,15 @@
     const ed = CH.makeEditor(root, { ops, max: 16, palette: false });   // no palette: words add blocks
     const go = CH.wireEditor(root, g, ed, { run: board.run, reset: board.reset, winTitle: 'Signal received!', bumpTitle: 'Bumped into a wall', missTitle: 'Not at the battery yet' });
     const run = cmds => cmds.forEach(c => {
-      if (c === 'GO') go(); else if (c === 'UNDO') ed.undo(); else ed.add({ t: 'op', op: c });
+      if (c === 'GO') { CH.sfx.rise(); go(); } else if (c === 'UNDO') ed.undo(); else ed.add({ t: 'op', op: c });
     });
     const L = micUI(root, cfg, g, run);
     $$('.sayword', root).forEach(b => b.onclick = () => run([b.dataset.cmd]));
-    return { unmount() { L.stop(); } };
+    return { unmount() { L.stop(); }, solve() {
+      if (ed.busy) return '';
+      const ops = CH.toTurns(CH.solvePath(cfg.board), cfg.board.heading || 0);
+      ed.load({ main: ops }); board.reset();
+      return `Say: <b>${ops.map(o => cfg.words[o].label).join(', ')}</b>, then <b>go</b>. The blocks are loaded: say or tap <b>go</b>.`;
+    } };
   });
 })(window.CH);

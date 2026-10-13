@@ -36,7 +36,7 @@ class Kokoro:
 
     def render(self, text, out):
         import soundfile as sf
-        lang = "en-gb" if self.voice.startswith("b") else "en-us"
+        lang = "en-gb" if self.voice[0] in "bh" else "en-us"   # h* = Hindi-trained voices: Indian-accented English
         samples, sr = self.k.create(text, voice=self.voice, speed=self.speed, lang=lang)
         with tempfile.NamedTemporaryFile(suffix=".wav") as tmp:
             sf.write(tmp.name, samples, sr)
@@ -62,7 +62,7 @@ class ElevenLabs:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--engine", default="kokoro", choices=["kokoro", "elevenlabs"])
-    ap.add_argument("--voice", default="af_heart")
+    ap.add_argument("--voice", default="hf_alpha")
     ap.add_argument("--speed", type=float, default=0.95)
     ap.add_argument("--models", default=".")
     ap.add_argument("--samples", action="store_true", help="also record the voice samples for the grown-up screen")
@@ -88,7 +88,7 @@ def main():
 
     if a.samples and a.engine == "kokoro":
         (AUDIO / "samples").mkdir(exist_ok=True)
-        for v in ["af_heart", "af_bella", "bf_emma", "am_puck"]:
+        for v in ["hf_alpha", "hf_beta", "hm_omega", "hm_psi"]:
             Kokoro(a.models, v, a.speed).render("Hi! I'm your coding buddy. Help the bunny reach the carrot!", AUDIO / "samples" / f"{v}.mp3")
         print("samples recorded")
 

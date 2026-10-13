@@ -1,6 +1,11 @@
 /* Coding engines for ages 7–9: grid programs (loops, functions), debugging, counting loops, turtle drawing. */
 (function (CH) {
   const { $, $$, sleep, shake, h, DIRS, DNAME, ORDER } = CH;
+  // render a program spec as glyphs for the solution key
+  const specHTML = (spec, glyph) => {
+    const one = x => x === '*' ? '<b class="kg call">⭐</b>' : typeof x === 'string' ? `<b class="kg">${glyph(x)}</b>` : `<span class="kloop">🔁 ${x.loop}× ${x.body.map(one).join(' ')}</span>`;
+    return (spec.fn ? `⭐ My block = ${spec.fn.map(one).join(' ')}<br>` : '') + 'Main: ' + spec.main.map(one).join(' ');
+  };
 
   /* Program a grid walker with blocks; optional Repeat and ⭐ My block (Loop Maze, Make-a-Block) */
   CH.engine('codeGrid', (root, cfg, g) => {
@@ -11,6 +16,8 @@
     const board = CH.makeBoard($('.boardHost', root), cfg.board);
     const ed = CH.makeEditor(root, { ops: CH.ARROW_OPS, loop: cfg.loop, func: cfg.func, max: cfg.max });
     CH.wireEditor(root, g, ed, { run: board.run, reset: board.reset, winTitle: 'Made it!', bumpTitle: 'Bumped into something', missTitle: 'Not there yet' });
+    return { solve() { if (ed.busy) return ''; const spec = cfg.solution || { main: CH.solvePath(cfg.board) }; ed.load(spec); board.reset();
+      return `${specHTML(spec, d => DIRS[d][2])}<br>It is loaded: press <b>Run</b>.`; } };
   });
 
   /* Fix one wrong block (Bug Hunt) */
@@ -39,12 +46,19 @@
       g.feedback({ ok: false, title: 'Still buggy', msg: 'Look at the red block and try again.', btn: 'Try again', onBtn: () => { board.reset(); draw(); } });
     };
     draw();
+    return { solve() {
+      if (busy) return '';
+      const fix = CH.solvePath(cfg.board), i = fix.findIndex((d, k) => d !== prog[k]);
+      fix.forEach((d, k) => { prog[k] = d; }); draw(); board.reset();
+      return i < 0 ? 'The program is already right: press <b>Run</b>.' : `Block ${i + 1} should be <b class="kg">${DIRS[fix[i]][2]}</b>. Fixed: press <b>Run</b>.`;
+    } };
   });
 
   /* Start / stop / jump counter builds towers (Tower Counter) */
   CH.engine('counter', (root, cfg, g) => {
     const stepper = (k, label) => `<span class="stepper" data-k="${k}"><button type="button" class="minus" aria-label="Lower ${label}">−</button><b></b><button type="button" class="plus" aria-label="Raise ${label}">+</button></span>`;
-    root.innerHTML = `<div class="dots"></div><div class="towers"></div><div class="countbox">count = <b>–</b></div>
+    const U = 16;   // px per block
+    root.innerHTML = `<div class="dots"></div><div class="towerwrap"><div class="axis" aria-hidden="true">${Array.from({ length: 9 }, (_, i) => `<span>${9 - i}</span>`).join('')}</div><div class="towers"></div></div><div class="countbox">count = <b>–</b></div>
       <div class="rule"><div><span class="kw">START</span> at ${stepper('start', 'start')}</div><div><span class="kw">STOP</span> at ${stepper('stop', 'stop')}</div>
       <div><span class="kw">JUMP</span> by</div><div class="chips jumps"></div><div><span class="kw">EACH TIME</span> build a tower as tall as the count</div></div>
       <div class="actions"><button type="button" class="btn go">▶ Count</button></div>`;
@@ -58,7 +72,7 @@
     });
     cfg.jumps.forEach(j => { const b = h(`<button type="button" class="chip" data-j="${j}">${(j > 0 ? '+' : '−') + Math.abs(j)}</button>`); b.onclick = () => { if (busy) return; ctl.jump = j; drawCtl(); }; jumpsEl.appendChild(b); });
     function drawCtl() { $$('.stepper', root).forEach(sp => $('b', sp).textContent = ctl[sp.dataset.k]); $$('.chip', jumpsEl).forEach(b => b.setAttribute('aria-pressed', +b.dataset.j === ctl.jump)); g.hide(); }
-    function drawTowers(n) { const T = cfg.levels[L]; n = Math.max(n, T.length); towers.innerHTML = Array.from({ length: n }, (_, i) => `<div class="tw">${T[i] ? `<div class="ghost" style="height:${T[i] * 14}px"></div>` : ''}<div class="solid"></div></div>`).join(''); }
+    function drawTowers(n) { const T = cfg.levels[L]; n = Math.max(n, T.length); towers.innerHTML = Array.from({ length: n }, (_, i) => `<div class="tw">${T[i] ? `<div class="ghost" style="height:${T[i] * U}px"></div>` : ''}<div class="solid"></div></div>`).join(''); }
     function setup() { CH.dotsBar($('.dots', root), cfg.levels.length, L); drawTowers(0); countEl.textContent = '–'; drawCtl(); }
     $('.go', root).onclick = async () => {
       if (busy) return; busy = true; g.hide();
@@ -67,7 +81,7 @@
       const T = cfg.levels[L];
       drawTowers(seq.length);
       const solids = $$('.solid', towers);
-      for (let i = 0; i < seq.length; i++) { countEl.textContent = seq[i]; solids[i].style.height = seq[i] * 14 + 'px'; if (seq[i] !== T[i]) solids[i].classList.add('bad'); await sleep(500); }
+      for (let i = 0; i < seq.length; i++) { countEl.textContent = seq[i]; solids[i].style.height = seq[i] * U + 'px'; CH.sfx.pop(.7 + seq[i] * .08, .7); if (seq[i] !== T[i]) solids[i].classList.add('bad'); await sleep(500); }
       busy = false;
       if (seq.length === T.length && seq.every((v, i) => v === T[i])) {
         if (L < cfg.levels.length - 1) return g.feedback({ ok: true, title: 'Perfect skyline!', msg: 'The next skyline is different. Look closely.', btn: 'Next skyline', onBtn: () => { L++; setup(); } });
@@ -77,6 +91,11 @@
       g.feedback({ ok: false, title: seq.length ? 'Not the same skyline' : 'Nothing was built', msg: seq.length ? 'Compare your towers with the outlines. Check start, stop and jump.' : 'The machine never reached the stop number. Which way should it jump?', btn: 'Try again' });
     };
     setup();
+    return { solve() {
+      if (busy) return '';
+      const T = cfg.levels[L]; ctl.start = T[0]; ctl.stop = T[T.length - 1]; ctl.jump = T[1] - T[0]; drawCtl();
+      return `START at <b>${ctl.start}</b>, STOP at <b>${ctl.stop}</b>, JUMP by <b>${ctl.jump > 0 ? '+' : '−'}${Math.abs(ctl.jump)}</b>. Set for you: press <b>Count</b>.`;
+    } };
   });
 
   /* Turtle drawing with relative turns (Draw Bot) */
@@ -109,7 +128,7 @@
         if (op === 'F') {
           const n = [pos[0] + VEC[dir][0], pos[1] + VEC[dir][1]];
           if (n[0] < 0 || n[1] < 0 || n[0] >= N || n[1] >= N) { await sleep(300); return { ok: false, step: i }; }
-          ink.insertAdjacentHTML('beforeend', line(pos, n)); drawn.add(key(pos, n)); pos = n;
+          ink.insertAdjacentHTML('beforeend', line(pos, n)); drawn.add(key(pos, n)); pos = n; CH.sfx.step(i);
         } else { const t = op === 'R' ? 1 : -1; dir = (dir + t + 4) % 4; deg += t * 90; }
         placeT(); await sleep(CH.STEP);
       }
@@ -120,5 +139,13 @@
     const ed = CH.makeEditor(root, { ops: [{ id: 'F', glyph: '⬆', label: 'forward' }, { id: 'R', glyph: '↻', label: 'turn right' }, { id: 'L', glyph: '↺', label: 'turn left' }], loop: true, max: 16 });
     CH.wireEditor(root, g, ed, { run, reset, winTitle: 'Masterpiece!', bumpTitle: 'Off the paper!', missTitle: 'Not the same shape',
       levels: { hasNext: () => si < cfg.shapes.length - 1, next: () => { si++; setup(); } } });
+    return { solve() {
+      if (ed.busy) return '';
+      const sol = T.sol; let unit = sol;
+      for (let len = 1; len <= sol.length; len++) if (sol.length % len === 0 && sol.slice(0, len).repeat(sol.length / len) === sol) { unit = sol.slice(0, len); break; }
+      const k = sol.length / unit.length, spec = { main: k > 1 ? [{ loop: k, body: [...unit] }] : [...unit] };
+      ed.load(spec); reset();
+      return `${specHTML(spec, o => ({ F: '⬆', R: '↻', L: '↺' })[o])}<br>It is loaded: press <b>Draw</b>.`;
+    } };
   });
 })(window.CH);

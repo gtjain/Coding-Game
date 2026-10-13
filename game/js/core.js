@@ -27,6 +27,44 @@ window.CH = window.CH || {};
   };
   CH.stopVoice = () => { try { clip && clip.pause(); } catch (e) {} };
 
+  /* ---- sound effects: synthesised with Web Audio, so no files to load ---- */
+  CH.sfx = (() => {
+    let ctx = null;
+    const st = { on: true };
+    const ac = () => {
+      if (!st.on) return null;
+      if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; try { ctx = new C(); } catch (e) { return null; } }
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+      return ctx;
+    };
+    // one soft voice: oscillator through a gentle envelope
+    function tone(c, { f0, f1 = f0, t = 0, dur = .14, vol = .3, type = 'sine', lp = 2400 }) {
+      const s0 = c.currentTime + t, o = c.createOscillator(), g = c.createGain(), fl = c.createBiquadFilter();
+      o.type = type; o.frequency.setValueAtTime(f0, s0); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, s0 + dur * .7);
+      fl.type = 'lowpass'; fl.frequency.value = lp;
+      g.gain.setValueAtTime(0.0001, s0); g.gain.exponentialRampToValueAtTime(vol, s0 + .012); g.gain.exponentialRampToValueAtTime(0.0001, s0 + dur);
+      o.connect(fl).connect(g).connect(c.destination); o.start(s0); o.stop(s0 + dur + .02);
+    }
+    const jitter = () => 1 + (Math.random() - .5) * .08;
+    return {
+      // squishy pop: a falling sine "bloop" plus a tiny bubble on top
+      pop(pitch = 1, vol = 1) { const c = ac(); if (!c) return; const p = pitch * jitter();
+        tone(c, { f0: 560 * p, f1: 190 * p, dur: .13, vol: .32 * vol });
+        tone(c, { f0: 1050 * p, f1: 520 * p, t: .018, dur: .07, vol: .07 * vol, type: 'triangle' }); },
+      step(i = 0) { this.pop(.75 + (i % 5) * .04, .55); },
+      // ascending, gently swelling run on the pentatonic scale when a program starts
+      rise() { const c = ac(); if (!c) return;
+        [523.25, 587.33, 659.25, 783.99, 880, 1046.5].forEach((f, i) => {
+          tone(c, { f0: f, t: i * .085, dur: .32, vol: .05 + i * .028, type: 'triangle', lp: 3200 });
+          tone(c, { f0: f / 2, t: i * .085, dur: .3, vol: .03 + i * .012 });
+        }); },
+      win() { const c = ac(); if (!c) return;
+        [783.99, 987.77, 1174.66, 1567.98].forEach((f, i) => tone(c, { f0: f, t: i * .1, dur: .5, vol: .16, type: 'triangle', lp: 4000 })); },
+      bonk() { const c = ac(); if (!c) return; tone(c, { f0: 260, f1: 120, dur: .22, vol: .25 }); },
+      get enabled() { return st.on; }, set enabled(v) { st.on = !!v; }
+    };
+  })();
+
   /* ---- directions ---- */
   CH.DIRS = { U: [0, -1, '↑'], R: [1, 0, '→'], D: [0, 1, '↓'], L: [-1, 0, '←'] };
   CH.ORDER = ['U', 'R', 'D', 'L'];
@@ -73,9 +111,9 @@ window.CH = window.CH || {};
       const [dx, dy] = CH.DIRS[d], nx = pos.x + dx, ny = pos.y + dy;
       if (blocked(nx, ny)) {
         s.classList.remove('bump'); place(pos.x + dx * .3, pos.y + dy * .3); await sleep(160); place(pos.x, pos.y);
-        void s.offsetWidth; s.classList.add('bump'); await sleep(450); return 'bump';
+        void s.offsetWidth; s.classList.add('bump'); CH.sfx.bonk(); await sleep(450); return 'bump';
       }
-      pos = { x: nx, y: ny }; place(nx, ny); await sleep(STEP);
+      pos = { x: nx, y: ny }; place(nx, ny); CH.sfx.step(nx + ny); await sleep(STEP);
       if (goal && nx === goal.x && ny === goal.y) { s.classList.add('win'); return 'goal'; }
       return 'ok';
     }
@@ -92,6 +130,28 @@ window.CH = window.CH || {};
     const api = { run, act, reset, cells, el: b, w, h: H, place, sprite: s, blocked };
     window.__boards.push(api);
     return api;
+  };
+
+  CH.solvePath = cfg => {
+    const { w, h: H } = cfg, key = (x, y) => x + ',' + y;
+    let walls = new Set((cfg.walls || []).map(([x, y]) => key(x, y)));
+    if (cfg.path) { const ps = new Set(cfg.path.map(p => p + '')); walls = new Set(); for (let y = 0; y < H; y++) for (let x = 0; x < w; x++) if (!ps.has(key(x, y))) walls.add(key(x, y)); }
+    const [sx, sy] = cfg.start, [gx, gy] = cfg.goal, prev = new Map([[key(sx, sy), null]]), q = [[sx, sy]];
+    while (q.length) {
+      const [x, y] = q.shift(); if (x === gx && y === gy) break;
+      for (const d of CH.ORDER) { const nx = x + CH.DIRS[d][0], ny = y + CH.DIRS[d][1], k = key(nx, ny);
+        if (nx < 0 || ny < 0 || nx >= w || ny >= H || walls.has(k) || prev.has(k)) continue; prev.set(k, [key(x, y), d]); q.push([nx, ny]); }
+    }
+    const out = []; let k = key(gx, gy);
+    while (prev.get(k)) { const [pk, d] = prev.get(k); out.unshift(d); k = pk; }
+    return out;
+  };
+  CH.toTurns = (dirs, heading = 0) => {
+    const out = []; let hd = heading;
+    for (const d of dirs) { const want = CH.ORDER.indexOf(d), diff = (want - hd + 4) % 4;
+      if (diff === 1) out.push('RT'); else if (diff === 3) out.push('LT'); else if (diff === 2) out.push('RT', 'RT');
+      hd = want; out.push('F'); }
+    return out;
   };
 
   CH.arrowPalette = (host, onPick, big) => {
@@ -140,7 +200,7 @@ window.CH = window.CH || {};
       if (busy) return false;
       if (count() >= max) { shake(counter || tray); return false; }
       if (item.t === 'loop' && target !== main) target = main;
-      if (item.t === 'call' && target === fn) { shake(fnTray); return false; }   // a block can't call itself
+      if (item.t === 'call' && target === fn) target = main;   // a block can't call itself, so ⭐ goes to the main program
       const list = target === main ? main : target === fn ? fn : target.body;
       list.push(item); if (item.t === 'loop') target = item;
       changed(); return true;
@@ -168,6 +228,13 @@ window.CH = window.CH || {};
       flatten, count, highlight, redraw: draw, add,
       undo() { if (busy) return; const list = target === main ? main : target === fn ? fn : target.body; if (list.length) { list.pop(); changed(); } else if (target !== main) { target = main; draw(); } },
       clear() { main.length = 0; fn.length = 0; target = main; changed(); },
+      // spec: { main: ['R', {loop: 5, body: ['R','U']}, '*'], fn: ['U','R'] }   ('*' = ⭐ My block)
+      load(spec) {
+        const item = x => x === '*' ? { t: 'call' } : typeof x === 'string' ? { t: 'op', op: x } : { t: 'loop', n: x.loop, body: x.body.map(item) };
+        main.length = 0; fn.length = 0; target = main;
+        (spec.main || []).forEach(x => main.push(item(x))); (spec.fn || []).forEach(x => fn.push(item(x)));
+        changed();
+      },
       onChange(f) { onChange = f; },
       get busy() { return busy; }, set busy(v) { busy = v; }
     };

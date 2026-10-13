@@ -166,7 +166,9 @@ await p.click(`${C('B4')} .go`); await wait(3000); await stars('B4', 3);
 
 await open('B8');
 await p.click(`${C('B8')} .fnbody`); for (const k of ['up', 'right', 'right', 'down']) await p.click(`${C('B8')} [aria-label="Add ${k}"]`);
-await p.click(`${C('B8')} .prog`); for (const k of ['my block', 'right', 'my block', 'right', 'my block']) await p.click(`${C('B8')} [aria-label="Add ${k}"]`);
+// the natural way: fill My block, then tap ⭐ (no need to tap the main program first)
+for (const k of ['my block', 'right', 'my block', 'right', 'my block']) await p.click(`${C('B8')} [aria-label="Add ${k}"]`);
+check('B8 ⭐ goes to the main program even while My block is selected', await p.locator(`${C('B8')} .prog > .blk`).count() === 5 && await p.locator(`${C('B8')} .fnbody .blk`).count() === 4);
 await p.click(`${C('B8')} .go`); await wait(6800); await stars('B8', 3);
 
 await open('B10');
@@ -208,6 +210,50 @@ check('B11 parser handles "go forward", "write", "four word"', JSON.stringify(cm
 await p.evaluate(() => document.querySelector('#card-B11 .play').__hear('right forward forward forward undo'));
 check('B11 "undo" removes the last block', await p.locator(`${C('B11')} .prog .blk`).count() === 11);
 await p.click(`${C('B11')} .sayword[data-cmd="GO"]`); await wait(5600); await stars('B11', 3);
+
+/* solution key on every card */
+const ALL = ['A1', 'A9', 'A6', 'A2', 'A3', 'A4', 'A5', 'A7', 'A8', 'B1', 'B12', 'B2', 'B4', 'B8', 'B10', 'B3', 'B5', 'B9', 'B6', 'B7', 'B11'];
+const noKey = [];
+for (const id of ALL) {
+  await open(id);
+  check(`${id} hides the solution until 2 wrong tries`, await p.locator(`#card-${id} .stuck`).isHidden());
+  await p.evaluate(id => { document.querySelector(`#card-${id} .stuck`).hidden = false; }, id);
+  await p.click(`#card-${id} .stuck`);
+  const k = (await p.locator(`#card-${id} .keybox`).innerText()).trim();
+  if (k.length < 25) noKey.push(id + ': ' + k);
+}
+check(`solution key explains every one of ${ALL.length} cards`, noKey.length === 0, noKey.join(' | '));
+// for cards where the key loads the answer, pressing Go must then succeed
+for (const [id, ms, re] of [['A1', 3200, /With the solution key/], ['A9', 4200, /With the solution key/], ['A4', 4400, /With the solution key/], ['A5', 3800, /With the solution key/],
+  ['B1', 4800, /With the solution key/], ['B12', 4400, /With the solution key/], ['B8', 6800, /With the solution key/], ['B2', 4000, /With the solution key/],
+  ['B4', 3000, /Perfect skyline/], ['B10', 5200, /Next shape/], ['B3', 2800, /Sorted/], ['B5', 3400, /With the solution key/]]) {
+  await open(id);
+  await p.evaluate(id => { document.querySelector(`#card-${id} .stuck`).hidden = false; }, id);
+  await p.click(`#card-${id} .stuck`); await p.click(`${C(id)} .go`); await wait(ms);
+  const t = await txt(id);
+  check(`${id} solution key works when run`, re.test(t) && (!/With the solution key/.test(t) || t.includes('⭐☆☆')), t);
+}
+await open('B11');
+await p.evaluate(() => { document.querySelector('#card-B11 .stuck').hidden = false; });
+await p.click('#card-B11 .stuck'); await p.click(`${C('B11')} .sayword[data-cmd="GO"]`); await wait(6000);
+check('B11 solution key works when run', /With the solution key/.test(await txt('B11')), await txt('B11'));
+// mirror round 1 key must update the game's own selection
+await open('B7');
+await p.evaluate(() => { document.querySelector('#card-B7 .stuck').hidden = false; });
+await p.click('#card-B7 .stuck'); await p.click(`${C('B7')} .check`);
+check('B7 solution key selection passes Check', /Found them all/.test(await txt('B7')), await txt('B7'));
+// solution offered after 2 real mistakes
+await open('A2');
+await p.click(`${C('A2')} .choice:has-text("🟢")`); await p.click(`${C('A2')} .choice:has-text("🔴")`);
+check('A2 offers the solution after 2 wrong tries', await p.locator('#card-A2 .stuck').isVisible());
+/* visuals */
+await p.setViewportSize({ width: 360, height: 780 });
+await open('A2');
+const tops = await p.evaluate(() => [...document.querySelectorAll('#card-A2 .train > *')].map(e => Math.round(e.getBoundingClientRect().bottom)));
+check('A2 train stays on one row at 360px', new Set(tops).size === 1 && tops.length === 7, tops.join(','));
+await open('B4');
+check('B4 towers have grid lines and a 1–9 scale', /repeating-linear-gradient/.test(await p.evaluate(() => getComputedStyle(document.querySelector('#card-B4 .towers')).backgroundImage)) && await p.locator('#card-B4 .axis span').count() === 9);
+await p.setViewportSize({ width: 390, height: 844 });
 
 const who = await p.innerText('#whoBtn');
 check('stars and XP saved to Pip', /Pip/.test(who) && +who.match(/⭐ (\d+)/)[1] > 300, who.replace(/\s+/g, ' '));

@@ -30,7 +30,7 @@
       const G = cfg.goals[gi], belt = $$('.item', $('.belt', root)); let wrong = 0;
       for (let i = 0; i < cfg.items.length; i++) {
         const [s, c] = cfg.items[i], val = pick[0] === 'color' ? c : s, left = val === pick[1], want = (G.k === 'color' ? c : s) === G.v;
-        $(left ? '.in.L' : '.in.R', root).appendChild(belt[i]);
+        $(left ? '.in.L' : '.in.R', root).appendChild(belt[i]); CH.sfx.pop(left ? 1.1 : .85, .6);
         if (left !== want) { belt[i].classList.add('wrong'); wrong++; }
         await sleep(350);
       }
@@ -43,6 +43,8 @@
       g.feedback({ ok: false, title: `${wrong} in the wrong basket`, msg: 'The red-ringed shapes went the wrong way. Try a different condition.', btn: 'Try again', onBtn: draw });
     };
     draw();
+    return { solve() { if (busy) return ''; const G = cfg.goals[gi]; pick = conds.find(c => c[0] === G.k && c[1] === G.v); draw();
+      return `IF it is <b>${pick[2]}</b> THEN left basket. Picked for you: press <b>Run machine</b>.`; } };
   });
 
   /* Choose last digits that mean "even" (Odd or Even Gate) */
@@ -69,7 +71,7 @@
       const els = $$('.num', $('.belt', root)); let wrong = 0;
       for (let i = 0; i < cfg.nums.length; i++) {
         const n = cfg.nums[i], left = chosen.has(n % 10);
-        $(left ? '.in.L' : '.in.R', root).appendChild(els[i]);
+        $(left ? '.in.L' : '.in.R', root).appendChild(els[i]); CH.sfx.pop(left ? 1.1 : .85, .6);
         if (left !== (n % 2 === 0)) { els[i].classList.add('wrong'); wrong++; }
         await sleep(300);
       }
@@ -79,6 +81,11 @@
       g.feedback({ ok: false, title: `${wrong} went through the wrong door`, msg: 'Look at the last digit of each red-ringed number. Tap digits to check for pairs.', btn: 'Try again', onBtn: draw });
     };
     draw();
+    return { solve() {
+      if (busy) return ''; chosen.clear(); [0, 2, 4, 6, 8].forEach(d => chosen.add(d));
+      $$('.digits .chip', root).forEach((b, d) => b.setAttribute('aria-pressed', chosen.has(d)));
+      return 'Even numbers end in <b>0, 2, 4, 6 or 8</b>. Picked for you: press <b>Run gate</b>.';
+    } };
   });
 
   /* Predict a variable's final value (Magic Jar) */
@@ -108,7 +115,7 @@
     async function guess(o, btn) {
       if (busy) return; busy = true; g.hide(); $$('button', ch).forEach(b => b.disabled = true);
       const steps = trace(cfg.rounds[r].lines, els);
-      for (const s of steps) { $$('.now', panel).forEach(e => e.classList.remove('now')); s.el.classList.add('now'); jarV.textContent = s.j; pop(jarV); await sleep(650); }
+      for (const s of steps) { $$('.now', panel).forEach(e => e.classList.remove('now')); s.el.classList.add('now'); jarV.textContent = s.j; pop(jarV); CH.sfx.step(); await sleep(650); }
       $$('.now', panel).forEach(e => e.classList.remove('now'));
       const ans = steps[steps.length - 1].j; busy = false;
       if (o === ans) {
@@ -120,6 +127,11 @@
       g.feedback({ ok: false, title: `The jar ended at ${ans}`, msg: 'Run it again in your head, one line at a time.', btn: 'Try again', onBtn: setup });
     }
     setup();
+    return { solve() {
+      const steps = trace(cfg.rounds[r].lines, els), vals = steps.map(s => s.j), ans = vals[vals.length - 1];
+      $$('.choice', ch).forEach(b => b.classList.toggle('hint', +b.textContent === ans));
+      return `The jar goes <b>${vals.join(' → ')}</b>, so it ends at <b>${ans}</b>.`;
+    } };
   });
 
   /* Column addition with tens rods and ones cubes (Block Adder) */
@@ -149,6 +161,7 @@
     $$('[data-act]', root).forEach(b => b.onclick = () => {
       g.hide();
       const a = b.dataset.act;
+      CH.sfx.pop(a === 'read' ? 1.2 : 1);
       if (a === 'ones') { if (st.ones) return oops('The ones are already together.'); st.rO = st.aO + st.bO; st.aO = st.bO = 0; st.ones = true; }
       else if (a === 'trade') {
         if (!st.ones) return oops('Push the ones together first, then see if there are 10 or more.');
@@ -181,6 +194,10 @@
       draw();
     });
     setup();
+    return { solve() {
+      const carry = st.a % 10 + st.b % 10 >= 10;
+      return `<b>Push ones</b> (${st.a % 10} + ${st.b % 10} = ${st.a % 10 + st.b % 10})${carry ? ', <b>Trade 10 ones</b> for a ten' : ''}, <b>Push tens</b>, then <b>Read answer</b>: ${st.a} + ${st.b} = <b>${st.a + st.b}</b>.`;
+    } };
   });
 
   /* Spot palindromes, then run flip-and-add until one appears (Mirror Numbers) */
@@ -189,7 +206,9 @@
     const stage = $('.mstage', root), dots = $('.dots', root);
     const isPal = n => { const s = String(n); return s === [...s].reverse().join(''); };
     const flip = n => Number([...String(n)].reverse().join(''));
+    let round = 1, cur = null;
     function roundOne() {
+      round = 1;
       CH.dotsBar(dots, 2, 0);
       const picked = new Set();
       stage.innerHTML = `<p class="q">Tap every mirror number, then press Check.</p><div class="tiles"></div><div class="actions"><button type="button" class="btn check">✔ Check</button></div>`;
@@ -203,8 +222,10 @@
       };
     }
     function roundTwo() {
+      round = 2;
       CH.dotsBar(dots, 2, 1);
       let si = 0, n = cfg.starts[0];
+      cur = () => n;
       stage.innerHTML = `<div class="codepanel"><div>repeat until it is a mirror number:</div><div class="in1">flip the digits and add</div></div>
         <div class="bignum"></div><div class="log"></div>
         <div class="actions"><button type="button" class="btn alt flipb">🔄 Flip &amp; add</button><button type="button" class="btn stopb">🪞 It's a mirror number!</button></div>`;
@@ -225,5 +246,14 @@
       };
     }
     roundOne();
+    return { solve() {
+      if (round === 1) {
+        // click the tiles so the engine's own selection matches the answer
+        const want = cfg.tiles.filter(isPal); $$('.tiles .num', stage).forEach(b => { if (want.includes(+b.textContent) !== (b.getAttribute('aria-pressed') === 'true')) b.click(); });
+        return `The mirror numbers are <b>${cfg.tiles.filter(isPal).join(', ')}</b>. Selected for you: press <b>Check</b>.`;
+      }
+      let n = cur(); const seq = [n]; while (!isPal(n) && seq.length < 10) { n = n + flip(n); seq.push(n); }
+      return `<b>${seq.join(' → ')}</b>. Press Flip &amp; add ${seq.length - 1} time${seq.length === 2 ? '' : 's'}, then press <b>It's a mirror number!</b>`;
+    } };
   });
 })(window.CH);

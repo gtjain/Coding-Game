@@ -1,7 +1,9 @@
-/* Engines for ages 4–6. Each engine: (root, cfg, g) => optional { unmount }.
-   g: say(text), mistake(), feedback({ok,title,msg,btn,onBtn}), finish({title}), hide(). */
+/* Engines for ages 4–6. Each engine: (root, cfg, g) => { solve(), unmount? }.
+   g: say(text), mistake(), feedback({ok,title,msg,btn,onBtn}), finish({title}), hide().
+   solve() fills in or highlights the answer and returns a short HTML explanation for the solution key. */
 (function (CH) {
   const { $, $$, sleep, shake, pop, h, DIRS, DNAME, LINES } = CH;
+  const glyphs = ds => ds.map(d => `<b class="kg">${DIRS[d][2]}</b>`).join(' ');
 
   /* Plan a path with arrows, then Go (Bunny Hop) */
   CH.engine('arrowPath', (root, cfg, g) => {
@@ -21,6 +23,7 @@
       g.mistake(); if (r.step != null) els[r.step]?.classList.add('bad');
       g.feedback({ ok: false, title: r.step != null ? 'Bonk! A rock!' : 'Almost! Keep hopping', msg: 'Change your plan and try again.', btn: 'Try again', onBtn: () => { board.reset(); draw(); } });
     };
+    return { solve() { if (busy) return ''; prog = CH.solvePath(cfg.board); draw(); board.reset(); return `The path is ${glyphs(prog)}. It is in your plan now: press <b>Go</b>.`; } };
   });
 
   /* Three cards, each repeated 1–4 times (Hop Hop Hop) */
@@ -56,6 +59,12 @@
       g.feedback({ ok: false, title: r.step != null ? 'Oops, flowers!' : 'Not far enough', msg: 'Change the arrows or the dots and try again.', btn: 'Try again', onBtn: () => { board.reset(); draw(); } });
     };
     draw();
+    return { solve() {
+      if (busy) return '';
+      plan = []; for (const d of CH.solvePath(cfg.board)) { const last = plan[plan.length - 1]; if (last && last.d === d && last.n < cfg.maxCount) last.n++; else plan.push({ d, n: 1 }); }
+      draw(); board.reset();
+      return `${plan.map(p => `<b class="kg">${DIRS[p.d][2]}</b> ×${p.n}`).join(', ')}. The cards are ready: press <b>Go</b>.`;
+    } };
   });
 
   /* Watch then repeat a sequence (Copy the Dance) */
@@ -83,29 +92,43 @@
       }
     }
     setup();
-    return { unmount() { alive = false; } };
+    return {
+      unmount() { alive = false; },
+      solve() { watched = true; $$('.choice', ch).forEach(b => b.disabled = false); return `This dance is <span class="kbig">${cfg.rounds[r].map(id => M[id].e).join(' ')}</span>. Tap them in that order.`; }
+    };
   });
 
   /* What comes next (Pattern Train) */
   CH.engine('pattern', (root, cfg, g) => {
-    root.innerHTML = `<div class="dots"></div><div class="train"></div><div class="choices"></div>`;
+    root.innerHTML = `<div class="dots"></div><div class="trainwrap"><div class="train"></div><div class="rails" aria-hidden="true"></div></div><div class="choices"></div>`;
+    const COLORS = ['sea', 'grass', 'grape', 'sun'];
+    const loco = `<div class="loco" aria-hidden="true"><svg viewBox="0 0 64 56"><circle class="puff" cx="17" cy="4" r="4"/><rect class="dk" x="12" y="8" width="9" height="12" rx="2"/>
+      <rect class="body" x="6" y="18" width="34" height="20" rx="7"/><rect class="cab" x="36" y="8" width="24" height="30" rx="4"/><rect class="roof" x="33" y="4" width="30" height="6" rx="3"/>
+      <rect class="win" x="42" y="14" width="12" height="10" rx="2"/><polygon class="dk" points="7,30 0,44 10,44"/><rect class="dk" x="4" y="36" width="58" height="5" rx="2"/>
+      <circle class="dk" cx="17" cy="45" r="8"/><circle class="hub" cx="17" cy="45" r="3"/><circle class="dk" cx="47" cy="45" r="8"/><circle class="hub" cx="47" cy="45" r="3"/></svg></div>`;
+    const wagon = (x, i, q) => `<div class="wagon ${q ? 'q' : COLORS[i % 4]}"><div class="wbody"><span class="cargo">${q ? '?' : x}</span></div><i class="wheel l"></i><i class="wheel r"></i></div>`;
     let r = 0, busy = false;
     function draw() {
       const R = cfg.rounds[r]; CH.dotsBar($('.dots', root), cfg.rounds.length, r);
-      $('.train', root).innerHTML = '<div class="car eng">🚂</div>' + R.seq.map(x => `<div class="car">${x}</div>`).join('') + '<div class="car q">?</div>';
+      const train = $('.train', root);
+      train.style.setProperty('--n', R.seq.length + 1);
+      train.innerHTML = loco + R.seq.map((x, i) => wagon(x, i)).join('') + wagon('', R.seq.length, true);
       const ch = $('.choices', root); ch.innerHTML = '';
       R.opts.forEach(o => {
         const b = h(`<button type="button" class="choice">${o}</button>`);
         b.onclick = async () => {
           if (busy) return;
           if (o !== R.ans) { g.mistake(); shake(b); g.say(LINES.tryAgain); return; }
-          busy = true; const q = $('.car.q', root); q.classList.remove('q'); q.textContent = o; g.say(LINES.yes); await sleep(800); busy = false; r++;
-          if (r < cfg.rounds.length) draw(); else { CH.dotsBar($('.dots', root), cfg.rounds.length, r); g.finish({ title: 'All aboard!' }); }
+          busy = true;
+          const q = $('.wagon.q', root); q.className = 'wagon ' + COLORS[R.seq.length % 4]; $('.cargo', q).textContent = o; pop(q);
+          g.say(LINES.yes); await sleep(800); busy = false; r++;
+          if (r < cfg.rounds.length) draw(); else { CH.dotsBar($('.dots', root), cfg.rounds.length, r); train.classList.add('go'); g.finish({ title: 'All aboard!' }); }
         };
         ch.appendChild(b);
       });
     }
     draw();
+    return { solve() { const ans = cfg.rounds[r].ans; $$('.choice', root).forEach(b => b.classList.toggle('hint', b.textContent === ans)); return `The next car is <span class="kbig">${ans}</span>. Look for the glowing button.`; } };
   });
 
   /* Put picture steps in order (Seed Steps) */
@@ -134,6 +157,7 @@
       g.feedback({ ok: false, title: 'Hmm, not quite', msg: 'Tap the red boxes to take those cards back.', btn: 'OK' });
     }
     draw();
+    return { solve() { const order = cfg.steps.map(s => s.e).join(' → '); placed = Array(n).fill(null); draw(); return `The order is <span class="kbig">${order}</span>. Tap the cards in that order.`; } };
   });
 
   /* Write if-then rules, then watch them run (Weather Bear) */
@@ -162,13 +186,15 @@
       if (cfg.conditions.some(c => !rules[c.e])) { g.say(LINES.fillFirst); shake(rulesEl); return; }
       busy = true; g.hide();
       const ans = Object.fromEntries(cfg.conditions.map(c => [c.e, c.answer])), bad = [];
-      for (const w of cfg.playOrder) { sky.textContent = w; wear.textContent = rules[w]; pop(wear); if (rules[w] !== ans[w]) bad.push(w); await sleep(1100); }
+      for (const w of cfg.playOrder) { sky.textContent = w; wear.textContent = rules[w]; pop(wear); CH.sfx.step(); if (rules[w] !== ans[w]) bad.push(w); await sleep(1100); }
       busy = false; draw(bad);
       if (!bad.length) return g.finish({ title: 'Snug bear!' });
       g.mistake();
       g.feedback({ ok: false, title: 'Silly bear!', msg: 'Change the red box and try again.', btn: 'Try again', onBtn: () => { sel = bad[0]; draw(); } });
     };
     draw();
+    return { solve() { if (busy) return ''; cfg.conditions.forEach(c => { rules[c.e] = c.answer; }); draw();
+      return `<span class="kbig">${cfg.conditions.map(c => `${c.e}→${c.answer}`).join('  ')}</span> The rules are filled in: press <b>Go</b>.`; } };
   });
 
   /* Predict where a program ends (Where Will It Land?) */
@@ -188,7 +214,7 @@
     }
     async function choose(x, y, c) {
       if (busy) return; busy = true; g.hide();
-      board.cells.forEach(e => e.classList.remove('picked', 'right')); c.classList.add('picked');
+      board.cells.forEach(e => e.classList.remove('picked', 'right', 'hint')); c.classList.add('picked');
       const R = cfg.rounds[r], els = $$('.blk', tray);
       await board.run(R.p.map(op => ({ op })), i => els.forEach((e, j) => e.classList.toggle('now', j === i)));
       board.cells[R.end[1] * W + R.end[0]].classList.add('right');
@@ -201,5 +227,6 @@
       }
     }
     setup();
+    return { solve() { const [x, y] = cfg.rounds[r].end; board.cells[y * W + x].classList.add('hint'); return 'The bunny stops on the <b>glowing square</b>. Tap it.'; } };
   });
 })(window.CH);

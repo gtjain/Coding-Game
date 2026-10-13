@@ -92,13 +92,13 @@ window.CH_CATALOG = {
       how: 'Get the frog to the lily pad using at most 6 blocks. Add a Repeat block and fill it with arrows (tap a box to choose where arrows go).',
       say: 'Get the frog to the lily pad. You only have six blocks, so use a repeat block.',
       notes: ['10 single arrows would work, but only 6 blocks fit. Repeat 5 × (→ ↑) takes 3.'],
-      cfg: { max: 6, loop: true, board: { w: 6, h: 6, start: [0, 5], goal: [5, 0], path: [[0, 5], [1, 5], [1, 4], [2, 4], [2, 3], [3, 3], [3, 2], [4, 2], [4, 1], [5, 1], [5, 0]], wallIcon: '🌿', hero: '🐸', prize: '🪷', bw: 340 } } },
+      cfg: { max: 6, loop: true, solution: { main: [{ loop: 5, body: ['R', 'U'] }] }, board: { w: 6, h: 6, start: [0, 5], goal: [5, 0], path: [[0, 5], [1, 5], [1, 4], [2, 4], [2, 3], [3, 3], [3, 2], [4, 2], [4, 1], [5, 1], [5, 0]], wallIcon: '🌿', hero: '🐸', prize: '🪷', bw: 340 } } },
 
     { id: 'B12', tier: 'older', unit: 0, icon: '🔁', title: 'Loop Maze 2', skill: 'Loops', engine: 'codeGrid',
       how: 'A new staircase with a longer step. At most 6 blocks.',
       say: 'A new staircase. Find the pattern, then repeat it.',
       notes: ['Same engine, new data. The repeating unit is three arrows (→ → ↑).'],
-      cfg: { max: 6, loop: true, board: { w: 7, h: 4, start: [0, 3], goal: [6, 0], path: [[0, 3], [1, 3], [2, 3], [2, 2], [3, 2], [4, 2], [4, 1], [5, 1], [6, 1], [6, 0]], wallIcon: '🌿', hero: '🐸', prize: '🪷', bw: 400 } } },
+      cfg: { max: 6, loop: true, solution: { main: [{ loop: 3, body: ['R', 'R', 'U'] }] }, board: { w: 7, h: 4, start: [0, 3], goal: [6, 0], path: [[0, 3], [1, 3], [2, 3], [2, 2], [3, 2], [4, 2], [4, 1], [5, 1], [6, 1], [6, 0]], wallIcon: '🌿', hero: '🐸', prize: '🪷', bw: 400 } } },
 
     { id: 'B2', tier: 'older', unit: 0, icon: '🐞', title: 'Bug Hunt', skill: 'Debugging', engine: 'debug',
       how: "The robot's program has one wrong block. Run it, watch where it crashes, then tap a block to turn it.",
@@ -113,10 +113,10 @@ window.CH_CATALOG = {
       cfg: { levels: [[1, 2, 3, 4, 5], [2, 4, 6, 8], [5, 4, 3, 2, 1]], jumps: [1, 2, 3, -1, -2], start: { start: 1, stop: 3, jump: 1 } } },
 
     { id: 'B8', tier: 'older', unit: 0, icon: '⭐', title: 'Make-a-Block', skill: 'Functions', engine: 'codeGrid',
-      how: "The kangaroo must jump three rocks using at most 9 blocks. Put the jump's arrows inside ⭐ My block once, then use ⭐ in the main program.",
+      how: "Jump three rocks using at most 9 blocks. Tap the green ⭐ My block box and add the jump's arrows once. Then tap ⭐ My block in the palette each time you want to jump: it goes into the main program.",
       say: 'Build your own star block for the jump over a rock, then use it again and again.',
       notes: ['A function is a named list of steps you can reuse. Without it, the shortest program is 10 blocks.'],
-      cfg: { max: 9, func: true, board: { w: 9, h: 2, start: [0, 1], goal: [8, 1], walls: [[1, 1], [4, 1], [7, 1]], wallIcon: '🪨', hero: '🦘', prize: '🏁', bw: 420 } } },
+      cfg: { max: 9, func: true, solution: { fn: ['U', 'R', 'R', 'D'], main: ['*', 'R', '*', 'R', '*'] }, board: { w: 9, h: 2, start: [0, 1], goal: [8, 1], walls: [[1, 1], [4, 1], [7, 1]], wallIcon: '🪨', hero: '🦘', prize: '🏁', bw: 420 } } },
 
     { id: 'B10', tier: 'older', unit: 0, icon: '✏️', title: 'Draw Bot', skill: 'Drawing with code', engine: 'turtle',
       how: 'The robot draws as it moves. Trace the dotted shape exactly. ⬆ moves one dot forward, ↻ and ↺ turn on the spot.',

@@ -132,13 +132,25 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 .pop{animation:pop .45s}
 @keyframes pop{0%{transform:scale(.3)}60%{transform:scale(1.2)}}
 
-/* A2 pattern train */
-.train{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;justify-content:center}
-.car{width:54px;height:54px;border-radius:12px;background:var(--card);border:3px solid var(--line);display:grid;place-items:center;font-size:30px;position:relative}
-.car::after{content:"";position:absolute;bottom:-9px;left:8px;width:12px;height:12px;border-radius:50%;background:var(--ink);box-shadow:24px 0 0 var(--ink)}
-.car.q{border-style:dashed;border-color:var(--grape);color:var(--grape);font-family:var(--display);font-weight:800}
-.car.eng{background:var(--coral);border-color:var(--coralDk);font-size:28px}
-
+/* A2 pattern train: one row that scales to the card; engine + wagons on a track */
+.trainwrap{width:100%;container-type:inline-size;padding-top:6px}
+.train{display:grid;grid-template-columns:1.25fr repeat(var(--n),1fr);gap:1.4%;align-items:end;width:100%}
+.loco svg{width:100%;display:block;overflow:visible}
+.loco .body{fill:var(--coral)}.loco .cab{fill:var(--coralDk)}.loco .roof,.loco .dk{fill:var(--ink)}.loco .win{fill:#DFF1FF}.loco .hub{fill:var(--sun)}
+.loco .puff{fill:#C9D6E8;animation:puff 2s ease-out infinite}
+@keyframes puff{0%{transform:translate(0,4px) scale(.4);opacity:.9}100%{transform:translate(-6px,-10px) scale(1.4);opacity:0}}
+.train.go{animation:chug .9s ease-in-out 2}
+@keyframes chug{50%{transform:translateX(-3%)}}
+.wagon{position:relative;aspect-ratio:1/1.3}
+.wagon::before{content:"";position:absolute;left:-14%;top:58%;width:16%;height:6%;background:var(--ink);border-radius:2px}
+.wbody{position:absolute;left:2%;right:2%;top:2%;bottom:18%;border-radius:14% 14% 8% 8%;display:grid;place-items:center;background:linear-gradient(to bottom,var(--c) 72%,var(--cd) 72%)}
+.cargo{width:84%;aspect-ratio:1;border-radius:18%;background:#fff;display:grid;place-items:center;font-size:calc(100cqw / (var(--n) + 1.25) * .6);line-height:1;margin-top:-14%}
+.wheel{position:absolute;bottom:2%;width:28%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,var(--sun) 0 22%,var(--ink) 24%)}
+.wheel.l{left:10%}.wheel.r{right:10%}
+.wagon.sea{--c:var(--sea);--cd:var(--seaDk)}.wagon.grass{--c:var(--grass);--cd:var(--grassDk)}.wagon.grape{--c:var(--grape);--cd:var(--grapeDk)}.wagon.sun{--c:var(--sun);--cd:var(--sunDk)}
+.wagon.q .wbody{background:#F3F0FF;border:3px dashed var(--grape)}
+.wagon.q .cargo{background:none;color:var(--grape);font-family:var(--display);font-weight:800}
+.rails{height:10px;margin-top:-4px;border-top:3px solid #8C97B3;background:repeating-linear-gradient(90deg,#B9A58A 0 6px,transparent 6px 16px)}
 /* A3 seed steps */
 .slots,.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}
 .slot{aspect-ratio:1;border:3px dashed var(--line);border-radius:16px;display:grid;place-items:center;font-size:36px;position:relative;background:var(--soft)}
@@ -189,13 +201,17 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 .pairs i{font-style:normal;letter-spacing:1px;color:var(--grapeDk)}
 .pairs i.left{color:var(--coral)}
 
-/* B4 tower counter */
-.towers{display:flex;gap:6px;align-items:flex-end;justify-content:center;height:150px;width:100%;border-bottom:3px solid var(--line)}
-.tw{position:relative;flex:1 1 0;max-width:30px;min-width:0;height:100%}
+/* B4 tower counter: light grid lines every block, numbered on the left */
+.towerwrap{width:100%;display:grid;grid-template-columns:18px 1fr;gap:4px;align-items:end}
+.axis{display:flex;flex-direction:column;height:144px;font-size:10px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.axis span{height:16px;line-height:16px;text-align:right}
+.towers{display:flex;gap:6px;align-items:flex-end;justify-content:center;height:147px;width:100%;border-bottom:3px solid var(--line);
+  background-image:repeating-linear-gradient(to top,transparent 0 15px,#E3ECF8 15px 16px);background-position:bottom;background-origin:content-box}
+.tw{position:relative;flex:1 1 0;max-width:32px;min-width:0;height:100%}
 .tw .ghost,.tw .solid{position:absolute;left:0;right:0;bottom:0;border-radius:6px 6px 0 0}
 .tw .ghost{border:2px dashed var(--grape);border-bottom:0}
-.tw .solid{background:repeating-linear-gradient(to top,var(--sun) 0 12px,var(--sunDk) 12px 14px);transition:height .3s;height:0}
-.tw .solid.bad{background:repeating-linear-gradient(to top,var(--coral) 0 12px,var(--coralDk) 12px 14px)}
+.tw .solid{background:repeating-linear-gradient(to top,var(--sun) 0 14px,var(--sunDk) 14px 16px);transition:height .3s;height:0}
+.tw .solid.bad{background:repeating-linear-gradient(to top,var(--coral) 0 14px,var(--coralDk) 14px 16px)}
 .countbox{font-family:var(--display);font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
 .stepper{display:inline-flex;align-items:center;gap:6px}
 .stepper button{width:34px;height:34px;border-radius:10px;border:2px solid var(--line);border-bottom-width:4px;background:var(--card);font-weight:800;font-size:18px}
@@ -364,6 +380,19 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 .sheet{width:min(100%,460px)}
 .sheet .settings p{text-align:left}
 
+/* ---- v3.1: solution key + hints ---- */
+.stuck{align-self:center;border:2px dashed var(--sunDk);background:#FFF6DC;color:var(--ink);font-weight:800;border-radius:14px;padding:8px 14px}
+.keybox{border-radius:16px;background:#FFF6DC;border:2px solid var(--sun);padding:12px 14px;display:grid;gap:6px;font-weight:700}
+.keybox strong{font-family:var(--display);font-size:20px}
+.keybox small{color:var(--muted)}
+.kg{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 4px;border-radius:8px;background:var(--grape);color:#fff;font-family:var(--display)}
+.kg.call{background:var(--grass)}
+.kloop{display:inline-flex;gap:4px;align-items:center;border:2px solid var(--sun);border-radius:10px;padding:2px 6px;background:#fff}
+.kbig{font-size:26px;letter-spacing:2px}
+.hint{animation:glow 1s ease-in-out infinite;border-color:var(--sun)!important}
+.cell.hint{background:#FFE9A8}
+@keyframes glow{50%{box-shadow:0 0 0 6px rgba(255,194,60,.55)}}
+
 @media (prefers-reduced-motion: reduce){
   *{animation:none!important;transition:none!important}
 }
@@ -371,7 +400,7 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 
 <header class="top">
   <div class="topin">
-    <div class="brand"><span class="logo"><i></i><i></i><i></i><i></i></span>Code Hoppers <span class="tag">Prototype v3</span></div>
+    <div class="brand"><span class="logo"><i></i><i></i><i></i><i></i></span>Code Hoppers <span class="tag">Prototype v3.1</span></div>
     <div class="topright">
       <span class="chipbtn timer" id="timer" aria-live="polite">⏱ 15:00</span>
       <button class="chipbtn" id="whoBtn" type="button"></button>

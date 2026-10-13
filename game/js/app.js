@@ -7,7 +7,8 @@
   const deckFor = tier => GAMES.filter(g => g.tier === tier).map((g, i) => [g, i]).sort((a, b) => a[0].unit - b[0].unit || a[1] - b[1]).map(x => x[0]);
   const TIER_NAME = { young: 'Ages 4–6', older: 'Ages 7–9' };
   const AVATARS = ['🐰', '🐸', '🦊', '🐼', '🐯', '🐙', '🦄', '🐢', '🦁', '🐨', '🐧', '🦖'];
-  const VOICES = [['af_heart', 'Heart (in use)'], ['af_bella', 'Bella'], ['bf_emma', 'Emma, British'], ['am_puck', 'Puck']];
+  const VOICES = [['hf_alpha', 'Alpha (in use)'], ['hf_beta', 'Beta'], ['hm_omega', 'Omega'], ['hm_psi', 'Psi']];
+  const KEY_AFTER = 2;   // offer the solution key after this many wrong tries
 
   /* ---------- storage ---------- */
   const KEY = 'code-hoppers-v3';
@@ -20,11 +21,20 @@
     if (!s || !Array.isArray(s.profiles)) s = { current: 'Pip', profiles: [
       { name: 'Pip', avatar: '🐰', age: 'young', xp: 25, streak: 3, last: null, combo: 1, done: { A1: 3 } },
       { name: 'Juno', avatar: '🦊', age: 'older', xp: 45, streak: 5, last: null, combo: 0, done: { B1: 2, B2: 3 } }] };
-    s.settings = Object.assign({ limitMin: 15, demo: false, pin: null }, s.settings || {});
+    s.settings = Object.assign({ limitMin: 15, demo: false, pin: null, sfx: true }, s.settings || {});
     return s;
   }
   S = load();
   S.profiles.forEach(p => { p.time = p.time || freshTime(); p.combo = p.combo || 0; });
+  CH.sfx.enabled = S.settings.sfx;
+  // squishy pop on every tap; a rising run when a program starts
+  document.addEventListener('click', e => {
+    const b = e.target.closest('button, [role="button"]');
+    if (!b || b.disabled || b.dataset.sfx === 'none') return;
+    if (b.matches('.play .go')) return CH.sfx.rise();
+    const up = b.matches('.plus, [data-k], .next'), down = b.matches('.minus, .prev, [data-k="del"]');
+    CH.sfx.pop(up ? 1.25 : down ? .8 : 1);
+  }, true);
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   const cur = () => S.profiles.find(p => p.name === S.current) || null;
 
@@ -125,7 +135,8 @@
         <div class="opts" id="newAge"><button type="button" data-a="young" aria-pressed="true">4–6</button><button type="button" data-a="older" aria-pressed="false">7–9</button></div>
         <button type="button" class="btn small" id="addKid">Add</button></div><p class="err" id="addErr"></p></div>
       <div class="row"><h4>Voice</h4><div class="opts">${VOICES.map(([v, n]) => `<button type="button" data-v="${v}">▶ ${n}</button>`).join('')}</div>
-      <p class="fine">Recorded with Kokoro, a free open-source voice. Tell us which voice you like and every line gets re-recorded in it.</p></div>
+      <p class="fine">Indian-accented voices recorded with Kokoro, a free open-source voice model. Pick one and every line gets re-recorded in it.</p></div>
+      <div class="row"><h4>Sound effects</h4><div class="opts" id="sfxOpts"><button type="button" data-s="1" aria-pressed="${st.sfx}">On</button><button type="button" data-s="0" aria-pressed="${!st.sfx}">Off</button></div></div>
       <div class="actions"><button type="button" class="btn ghost small" id="sPin">Change PIN</button><button type="button" class="btn" id="sDone">Done</button></div></div>`, true);
     $$('#limOpts button', sheet).forEach(b => b.onclick = () => {
       if (b.dataset.m === 'demo') st.demo = true; else { st.demo = false; st.limitMin = +b.dataset.m; }
@@ -143,6 +154,7 @@
       save(); $('#newName', sheet).value = ''; err.textContent = ''; kidRows(); renderHome(); renderHeader();
     };
     $$('[data-v]', sheet).forEach(b => b.onclick = () => { CH.stopVoice(); try { new Audio((window.CH_SAMPLES || {})[b.dataset.v] || `audio/samples/${b.dataset.v}.mp3`).play().catch(() => {}); } catch (e) {} });
+    $$('#sfxOpts button', sheet).forEach(b => b.onclick = () => { st.sfx = b.dataset.s === '1'; CH.sfx.enabled = st.sfx; save(); $$('#sfxOpts button', sheet).forEach(x => x.setAttribute('aria-pressed', x === b)); });
     $('#sPin', sheet).onclick = () => { S.settings.pin = null; save(); askGrownup({ closable: true, onOk: openSettings }); };
     $('#sDone', sheet).onclick = closeModal;
     kidRows();
@@ -266,6 +278,7 @@
         <span class="best" aria-label="Best">${p && p.done[g.id] ? stars(p.done[g.id]) : ''}</span>
         <button class="speak" type="button" aria-label="Read the instructions aloud">🔊</button></div>
       <p class="how">${g.how}</p><div class="play"></div><div class="result" role="status" hidden></div>
+      <button type="button" class="stuck" hidden>💡 Stuck? Show the solution</button><div class="keybox" role="status" hidden></div>
       <details class="notes"><summary>Design notes</summary><ul>${g.notes.map(n => `<li>${n}</li>`).join('')}</ul></details></article>`);
     $('#stack').innerHTML = ''; $('#stack').appendChild(card);
     $('.speak', card).onclick = () => CH.say(g.say);
@@ -275,7 +288,16 @@
   }
 
   function makeApi(g, card, deck, i) {
-    let mistakes = 0;
+    let mistakes = 0, usedKey = false;
+    const stuck = $('.stuck', card), keybox = $('.keybox', card);
+    const reveal = () => {
+      const html = mounted && mounted.solve ? mounted.solve() : '';
+      if (!html) return;
+      usedKey = true; stuck.hidden = true; res.hidden = true;
+      keybox.innerHTML = `<strong>💡 Solution</strong><div>${html}</div><small>Using the solution gives 1 star. Try the next card on your own!</small>`;
+      keybox.hidden = false; keybox.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    };
+    stuck.onclick = reveal;
     const res = $('.result', card), young = g.tier === 'young';
     const show = (ok, title, msg, buttons) => {
       res.className = 'result ' + (ok ? 'ok' : 'bad');
@@ -285,19 +307,22 @@
     };
     return {
       young, say: CH.say,
-      mistake() { mistakes++; },
+      mistake() { mistakes++; if (mistakes >= KEY_AFTER && !usedKey) stuck.hidden = false; },
       hide() { res.hidden = true; },
       feedback({ ok, title, msg, btn = 'OK', onBtn }) {
-        show(ok, title, msg, [{ text: btn, cls: ok ? '' : 'warn', fn: onBtn }]);
+        const buttons = [{ text: btn, cls: ok ? '' : 'warn', fn: onBtn }];
+        if (!ok && mistakes >= KEY_AFTER && !usedKey) buttons.push({ text: '💡 Show solution', cls: 'ghost', fn: () => { onBtn && onBtn(); reveal(); } });
+        show(ok, title, msg, buttons);
         if (young) CH.say(ok ? LINES.yes : pick(LINES.keepGoing));
       },
       finish({ title }) {
-        const st = mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1;
+        const st = usedKey ? 1 : mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1;
         const tries = mistakes + 1;
         const rw = award(g.id, st);
+        stuck.hidden = true; keybox.hidden = true; CH.sfx.win();
         const best = $('.best', card); if (best && rw) best.textContent = stars(cur().done[g.id]);
         const seg = $$('#progress .seg')[i]; if (seg && rw) seg.className = `seg here s${cur().done[g.id]}`;
-        let msg = `<span class="stars">${stars(st)}</span> ${st === 3 ? 'First try!' : `${tries} tries`}`;
+        let msg = `<span class="stars">${stars(st)}</span> ${usedKey ? 'With the solution key' : st === 3 ? 'First try!' : `${tries} tries`}`;
         if (rw) msg += ` · +${rw.xp} XP` + (rw.bonus ? ` · <b class="combo">⚡ ${rw.combo} in a row: +${rw.bonus} bonus</b>` : '');
         else msg += ' · Pick a player to save stars.';
         const p = cur();
