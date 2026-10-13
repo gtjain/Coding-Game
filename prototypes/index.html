@@ -2,9 +2,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap">
 <style>
-/* Layout: sticky top bar + tabs; each prototype is a self-contained card with a play area, a feedback bar and design notes. Single bright look on purpose (kids' game). */
+/* Layout: sticky top bar (timer, player, grown-ups) + tabs; each prototype is a self-contained card. Single bright look on purpose (kids' game). */
 :root{
-  --sky:#E6F2FF; --card:#FFFFFF; --ink:#1D2846; --muted:#55628A; --line:#D3E1F3;
+  --sky:#E6F2FF; --card:#FFFFFF; --ink:#1D2846; --muted:#55628A; --line:#D3E1F3; --soft:#F7FAFF;
   --grass:#2BAE66; --grassDk:#1C8049; --sun:#FFC23C; --sunDk:#D39600;
   --coral:#FF6150; --coralDk:#C63E2E; --grape:#7559FF; --grapeDk:#5137D4;
   --field:#E3F5D6; --fieldLine:#C7E6B1; --sea:#3D8BFF; --seaDk:#1F66D6;
@@ -13,20 +13,24 @@
   color-scheme: light;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--sky);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
 h1,h2,h3{font-family:var(--display);line-height:1.1;text-wrap:balance;margin:0}
 button{font:inherit;color:inherit;cursor:pointer}
-button:focus-visible,input:focus-visible{outline:3px solid var(--grape);outline-offset:2px}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--grape);outline-offset:2px}
 
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--card);border-bottom:2px solid var(--line)}
-.topin{max-width:1100px;margin:0 auto;padding-block:10px;padding-inline:16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.topin{max-width:1100px;margin:0 auto;padding-block:10px;padding-inline:16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:22px;font-weight:800}
 .logo{display:grid;grid-template-columns:repeat(2,12px);gap:3px}
 .logo i{width:12px;height:12px;border-radius:4px;background:var(--grass)}
 .logo i:nth-child(2){background:var(--sun)}.logo i:nth-child(3){background:var(--grape)}.logo i:nth-child(4){background:var(--coral)}
 .tag{font-family:var(--body);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--grapeDk);background:#EEEAFF;border-radius:999px;padding:3px 10px}
-.who{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-bottom-width:4px;background:var(--card);border-radius:14px;padding:6px 12px;font-weight:800}
-.who .av{font-size:22px}
+.topright{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chipbtn{display:flex;align-items:center;gap:8px;border:2px solid var(--line);border-bottom-width:4px;background:var(--card);border-radius:14px;padding:6px 10px;font-weight:800;font-size:15px}
+.chipbtn .av{font-size:20px}
+.timer{font-variant-numeric:tabular-nums}
+.timer.over{background:#FFE2DE;border-color:var(--coral);color:var(--coralDk)}
 .stat{display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
 .tabs{max-width:1100px;margin:0 auto;padding-inline:16px;display:flex;gap:6px;overflow-x:auto}
 .tabs button{border:0;background:none;padding:10px 14px;font-weight:800;color:var(--muted);border-bottom:4px solid transparent;white-space:nowrap}
@@ -35,15 +39,17 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--grape);outline-
 main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 .intro{max-width:68ch;margin-bottom:22px}
 .intro h2{font-size:30px;margin-bottom:6px}
-.intro p{margin:0;color:var(--muted)}
+.intro p{margin:0 0 6px;color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px;align-items:start}
+.unithead{grid-column:1/-1;font-family:var(--display);font-size:22px;margin-top:8px}
 
 /* cards */
 .game,.panel{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0;position:relative}
 .ghead{display:flex;gap:12px;align-items:center}
-.code{font-family:var(--display);font-weight:800;font-size:18px;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;background:var(--grass);flex:none}
+.code{font-family:var(--display);font-weight:800;font-size:17px;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;color:#fff;background:var(--grass);flex:none}
 [data-tier="older"] .code{background:var(--grape)}
 .ghead h3{font-size:24px}
+.newtag{font-family:var(--body);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--sun);color:var(--ink);border-radius:999px;padding:2px 8px;vertical-align:middle}
 .skill{margin:0;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .speak{margin-left:auto;flex:none;width:44px;height:44px;border-radius:12px;border:2px solid var(--line);border-bottom-width:4px;background:var(--card);font-size:20px}
 .how{margin:0;color:var(--muted)}
@@ -57,41 +63,53 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 .btn{border:0;border-radius:16px;padding:12px 20px;font-weight:800;font-size:17px;color:#fff;background:var(--grass);box-shadow:0 4px 0 var(--grassDk);transition:transform .08s,box-shadow .08s}
 .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--grassDk)}
 .btn.warn{background:var(--coral);box-shadow:0 4px 0 var(--coralDk)}
+.btn.alt{background:var(--sea);box-shadow:0 4px 0 var(--seaDk)}
 .btn.ghost{background:var(--card);color:var(--muted);box-shadow:0 4px 0 var(--line);border:2px solid var(--line)}
+.btn.small{padding:9px 14px;font-size:15px}
 .btn:disabled{opacity:.5;cursor:default}
 .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 
-/* board */
-.board{position:relative;display:grid;grid-template-columns:repeat(var(--w),1fr);width:min(100%,var(--bw,320px));aspect-ratio:var(--w)/var(--h);background:var(--field);border-radius:18px;overflow:hidden;border:3px solid var(--fieldLine)}
-.cell{border:1px solid var(--fieldLine);display:grid;place-items:center;font-size:var(--fs,30px)}
+/* board: rows and columns are forced equal so one arrow = exactly one square */
+.boardHost{width:100%;display:flex;justify-content:center}
+.board{position:relative;display:grid;grid-template-columns:repeat(var(--w),minmax(0,1fr));grid-template-rows:repeat(var(--h),minmax(0,1fr));width:min(100%,var(--bw,320px));aspect-ratio:var(--w)/var(--h);background:var(--field);border-radius:18px;overflow:hidden;border:3px solid var(--fieldLine);container-type:inline-size}
+.cell{border:1px solid var(--fieldLine);display:grid;place-items:center;font-size:calc(100cqw / var(--w) * .58);line-height:1;overflow:hidden;min-width:0;min-height:0}
 .cell.wall{background:#CFE9BD}
-.sprite{position:absolute;display:grid;place-items:center;font-size:var(--fs,30px);width:calc(100% / var(--w));height:calc(100% / var(--h));transition:left .32s ease,top .32s ease;z-index:2}
+.board.pick .cell{cursor:pointer}
+.cell.picked{background:#FFE9A8}
+.cell.right{background:#BFF0D4;box-shadow:inset 0 0 0 3px var(--grass)}
+.sprite{position:absolute;display:grid;place-items:center;font-size:calc(100cqw / var(--w) * .62);line-height:1;width:calc(100% / var(--w));height:calc(100% / var(--h));transition:left .32s ease,top .32s ease;z-index:2;pointer-events:none}
 .sprite.bump{animation:wobble .45s}
 .sprite.win{animation:hop .6s 2}
 @keyframes wobble{25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
 @keyframes hop{50%{transform:translateY(-30%) scale(1.15)}}
 
 /* program trays and blocks */
-.tray{width:100%;min-height:68px;border:3px dashed var(--line);border-radius:16px;padding:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;align-content:flex-start;background:#F7FAFF}
+.tray{width:100%;min-height:68px;border:3px dashed var(--line);border-radius:16px;padding:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;align-content:flex-start;background:var(--soft)}
 .tray.active{border-color:var(--grape);background:#F3F0FF}
 .tray:empty::before{content:attr(data-empty);color:var(--muted);font-weight:700;font-size:14px;padding-left:4px}
+.tray.readonly{border-style:solid;justify-content:center}
 .blk{width:48px;height:48px;border-radius:12px;border:0;background:var(--grape);box-shadow:0 4px 0 var(--grapeDk);color:#fff;font-family:var(--display);font-weight:800;font-size:28px;display:grid;place-items:center;line-height:1}
 .blk.big{width:64px;height:64px;font-size:36px}
+.blk.call{background:var(--grass);box-shadow:0 4px 0 var(--grassDk)}
 .blk.now{background:var(--sun);box-shadow:0 4px 0 var(--sunDk);color:var(--ink)}
 .blk.bad{background:var(--coral);box-shadow:0 4px 0 var(--coralDk)}
 .palette{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .palette .blk{background:var(--sea);box-shadow:0 4px 0 var(--seaDk)}
-.loopbtn{width:auto;padding:0 14px;font-size:18px;background:var(--sun)!important;box-shadow:0 4px 0 var(--sunDk)!important;color:var(--ink)!important}
+.palette .wide{width:auto;padding:0 14px;font-size:18px}
+.palette .loopbtn{background:var(--sun);box-shadow:0 4px 0 var(--sunDk);color:var(--ink)}
+.palette .callbtn{background:var(--grass);box-shadow:0 4px 0 var(--grassDk)}
 .loop{border:3px solid var(--sun);border-radius:16px;background:#FFF6DC;padding:6px;display:flex;flex-direction:column;gap:6px;min-width:150px;flex:1 1 180px}
 .loop.now{box-shadow:0 0 0 3px var(--sunDk)}
-.loophead{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px}
+.loophead{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px;flex-wrap:wrap}
 .loophead button{width:30px;height:30px;border-radius:10px;border:2px solid var(--sunDk);background:var(--card);font-weight:800}
 .loophead .n{font-family:var(--display);font-size:22px;min-width:20px;text-align:center;font-variant-numeric:tabular-nums}
 .loophead .x{margin-left:auto;border-color:var(--line)}
 .loop .tray{min-height:60px;background:var(--card)}
-.counter{font-size:14px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.fnbox{width:100%;border:3px solid var(--grass);border-radius:16px;background:#E8F8EF;padding:6px;display:grid;gap:6px}
+.fnbox .tray{background:var(--card);min-height:60px}
+.counter{font-size:14px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;text-align:center}
 
-/* result bar (bottom sheet style) */
+/* result bar */
 .result{border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;animation:slide .25s ease-out}
 .result.ok{background:#D9F7E6;color:var(--grassDk)}
 .result.bad{background:#FFE2DE;color:var(--coralDk)}
@@ -100,49 +118,131 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 .result span{font-weight:700}
 @keyframes slide{from{transform:translateY(10px);opacity:.3}}
 
-/* pattern train */
+/* shared bits */
+.dots{display:flex;gap:6px}
+.dots i{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--grass)}
+.choices{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.choice{min-width:76px;height:76px;padding:0 10px;border-radius:18px;border:2px solid var(--line);border-bottom-width:5px;background:var(--card);font-size:40px}
+.choice.numc{font-family:var(--display);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums}
+.choice:disabled{opacity:.5}
+.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.stage{width:100%;min-height:110px;border-radius:18px;background:#F3F0FF;display:flex;align-items:center;justify-content:center;gap:18px;font-size:56px;line-height:1}
+.pop{animation:pop .45s}
+@keyframes pop{0%{transform:scale(.3)}60%{transform:scale(1.2)}}
+
+/* A2 pattern train */
 .train{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;justify-content:center}
 .car{width:54px;height:54px;border-radius:12px;background:var(--card);border:3px solid var(--line);display:grid;place-items:center;font-size:30px;position:relative}
 .car::after{content:"";position:absolute;bottom:-9px;left:8px;width:12px;height:12px;border-radius:50%;background:var(--ink);box-shadow:24px 0 0 var(--ink)}
 .car.q{border-style:dashed;border-color:var(--grape);color:var(--grape);font-family:var(--display);font-weight:800}
 .car.eng{background:var(--coral);border-color:var(--coralDk);font-size:28px}
-.choices{display:flex;gap:14px;margin-top:8px}
-.choice{width:76px;height:76px;border-radius:18px;border:2px solid var(--line);border-bottom-width:5px;background:var(--card);font-size:40px}
-.choice.shake,.slot.shake{animation:shake .4s}
-@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.dots{display:flex;gap:6px}
-.dots i{width:12px;height:12px;border-radius:50%;background:var(--line)}
-.dots i.on{background:var(--grass)}
 
-/* seed steps */
+/* A3 seed steps */
 .slots,.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}
-.slot{aspect-ratio:1;border:3px dashed var(--line);border-radius:16px;display:grid;place-items:center;font-size:36px;position:relative;background:#F7FAFF}
+.slot{aspect-ratio:1;border:3px dashed var(--line);border-radius:16px;display:grid;place-items:center;font-size:36px;position:relative;background:var(--soft)}
 .slot b{position:absolute;top:4px;left:8px;font-family:var(--display);font-size:16px;color:var(--muted)}
 .slot.full{border-style:solid;border-color:var(--grass);background:var(--card)}
 .slot.wrong{border-color:var(--coral)}
 .pcard{aspect-ratio:1;border-radius:16px;border:2px solid var(--line);border-bottom-width:5px;background:var(--card);font-size:36px}
 .pcard[disabled]{visibility:hidden}
 
-/* sorter */
+/* A4 hop twice */
+.hop3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.hslot{border:3px dashed var(--line);border-radius:16px;min-height:124px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:6px;background:var(--soft)}
+.hslot.full{border-style:solid;border-color:var(--grape);background:var(--card)}
+.hslot.now{border-color:var(--sunDk);background:#FFF6DC}
+.cnt{display:flex;align-items:center;gap:4px}
+.cnt button{width:34px;height:34px;border-radius:10px;border:2px solid var(--line);border-bottom-width:4px;background:var(--card);font-weight:800;font-size:18px}
+.cnt b{font-size:13px;letter-spacing:1px;color:var(--grapeDk);min-width:36px;text-align:center}
+
+/* A5 weather bear */
+.rules{display:grid;gap:8px;width:100%}
+.rrow{display:flex;align-items:center;gap:10px;justify-content:center;font-size:36px}
+.rrow .kw{font-family:var(--display);font-size:16px;font-weight:800;color:var(--grapeDk)}
+.rslot{width:68px;height:68px;border:3px dashed var(--line);border-radius:16px;background:var(--soft);font-size:36px;display:grid;place-items:center}
+.rslot.sel{border-color:var(--grape);border-style:solid;background:#F3F0FF}
+.rslot.wrong{border-color:var(--coral);border-style:solid;background:#FFE2DE}
+
+/* A6 copy the dance */
+.seqrow{display:flex;gap:6px;min-height:44px;font-size:32px;flex-wrap:wrap;justify-content:center}
+
+/* B3/B5 sorters */
 .belt{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:44px}
 .item svg{width:40px;height:40px;display:block}
-.item.wrong{outline:3px solid var(--coral);border-radius:10px}
+.item.wrong,.num.wrong{outline:3px solid var(--coral);border-radius:10px}
 .rule{width:100%;border-radius:16px;background:#F3F0FF;border:2px solid #DCD3FF;padding:12px;display:grid;gap:8px;font-weight:800}
 .rule .kw{font-family:var(--display);color:var(--grapeDk);font-size:18px;margin-right:6px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:2px solid var(--line);border-bottom-width:4px;background:var(--card);border-radius:12px;padding:5px 10px;font-weight:800;display:inline-flex;gap:6px;align-items:center}
+.chip{border:2px solid var(--line);border-bottom-width:4px;background:var(--card);border-radius:12px;padding:5px 10px;font-weight:800;display:inline-flex;gap:6px;align-items:center;font-variant-numeric:tabular-nums}
 .chip[aria-pressed="true"]{border-color:var(--grape);background:#EEEAFF}
 .chip svg{width:18px;height:18px}
 .baskets{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
-.basket{border:3px solid var(--line);border-radius:16px;min-height:96px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.basket{border:3px solid var(--line);border-radius:16px;min-height:96px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .basket h4{margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .basket .in{display:flex;flex-wrap:wrap;gap:4px}
 .goal{width:100%;text-align:center;font-weight:800;background:#FFF6DC;border-radius:14px;padding:8px}
+.num{border:2px solid var(--line);border-bottom-width:4px;background:var(--card);border-radius:12px;padding:4px 10px;font-family:var(--display);font-weight:800;font-size:20px;font-variant-numeric:tabular-nums}
+.num[aria-pressed="true"]{border-color:var(--grape);background:#EEEAFF}
+.pairs{font-weight:700;color:var(--muted);font-size:14px;min-height:1.4em}
+.pairs i{font-style:normal;letter-spacing:1px;color:var(--grapeDk)}
+.pairs i.left{color:var(--coral)}
 
-/* shell: profiles + path map */
+/* B4 tower counter */
+.towers{display:flex;gap:6px;align-items:flex-end;justify-content:center;height:150px;width:100%;border-bottom:3px solid var(--line)}
+.tw{position:relative;flex:1 1 0;max-width:30px;min-width:0;height:100%}
+.tw .ghost,.tw .solid{position:absolute;left:0;right:0;bottom:0;border-radius:6px 6px 0 0}
+.tw .ghost{border:2px dashed var(--grape);border-bottom:0}
+.tw .solid{background:repeating-linear-gradient(to top,var(--sun) 0 12px,var(--sunDk) 12px 14px);transition:height .3s;height:0}
+.tw .solid.bad{background:repeating-linear-gradient(to top,var(--coral) 0 12px,var(--coralDk) 12px 14px)}
+.countbox{font-family:var(--display);font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.stepper{display:inline-flex;align-items:center;gap:6px}
+.stepper button{width:34px;height:34px;border-radius:10px;border:2px solid var(--line);border-bottom-width:4px;background:var(--card);font-weight:800;font-size:18px}
+.stepper b{font-family:var(--display);font-size:22px;min-width:22px;text-align:center;font-variant-numeric:tabular-nums}
+
+/* B9 magic jar */
+.codepanel{width:100%;background:var(--ink);color:#fff;border-radius:14px;padding:10px;display:grid;gap:4px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:15px}
+.codepanel div{padding:3px 8px;border-radius:8px}
+.codepanel .in1{padding-left:30px}
+.codepanel .now{background:var(--sun);color:var(--ink)}
+.jar{display:flex;align-items:center;gap:10px;font-size:44px}
+.jar b{font-family:var(--display);font-size:40px;min-width:70px;text-align:center;background:#FFF6DC;border-radius:14px;padding:0 10px;font-variant-numeric:tabular-nums}
+.q{margin:0;font-weight:800}
+
+/* B6 place value */
+.mat{width:100%;display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;align-items:stretch}
+.mat .h{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:center}
+.mat .col{position:relative;min-height:64px;border-radius:12px;background:var(--soft);border:2px solid var(--line);padding:18px 6px 6px;display:flex;flex-wrap:wrap;gap:3px;align-content:flex-end;justify-content:center}
+.mat .col small{position:absolute;top:2px;left:8px;font-family:var(--display);font-weight:800;font-size:15px;color:var(--muted)}
+.mat .col.over{border-color:var(--coral);background:#FFE2DE}
+.mat .sign{font-family:var(--display);font-size:24px;font-weight:800;display:grid;place-items:center}
+.mat .line{grid-column:1/-1;border-top:3px solid var(--ink)}
+.rod{width:9px;height:50px;border-radius:3px;background:repeating-linear-gradient(to top,var(--sea) 0 4px,var(--seaDk) 4px 5px)}
+.cube{width:11px;height:11px;border-radius:2px;background:var(--sun);box-shadow:inset 0 -2px 0 var(--sunDk)}
+.algo{margin:0;padding-left:22px;display:grid;gap:2px;font-weight:700;width:100%;font-size:15px}
+.algo li.done{color:var(--grassDk)}
+.algo li.done::after{content:" ✓"}
+
+/* B7 mirror numbers */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}
+.tiles .num{padding:12px 4px;font-size:22px}
+.bignum{font-family:var(--display);font-size:52px;font-weight:800;letter-spacing:.08em;font-variant-numeric:tabular-nums;line-height:1}
+.log{width:100%;font-variant-numeric:tabular-nums;font-weight:800;color:var(--muted);display:grid;gap:2px;text-align:center;min-height:1.4em}
+
+/* B10 draw bot */
+.paper{width:min(100%,300px)}
+.paper svg{width:100%;display:block;background:var(--card);border:3px solid var(--line);border-radius:16px}
+.paper .dotg circle{fill:var(--line)}
+.paper .tgt line{stroke:#BDB0FF;stroke-width:7;stroke-dasharray:7 7;stroke-linecap:round}
+.paper .ink line{stroke:var(--coral);stroke-width:7;stroke-linecap:round}
+.paper .turtle{transition:transform .3s ease}
+.paper .turtle polygon{fill:var(--grass);stroke:var(--grassDk);stroke-width:2}
+
+/* shell */
 .panel h3{font-size:24px}
 .players{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
-.ptile{border:2px solid var(--line);border-bottom-width:5px;border-radius:18px;background:var(--card);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:800}
+.ptile{border:2px solid var(--line);border-bottom-width:5px;border-radius:18px;background:var(--card);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:800;min-width:0;overflow-wrap:anywhere}
 .ptile .av{font-size:40px}
 .ptile small{color:var(--muted);font-weight:700}
 .ptile[aria-pressed="true"]{border-color:var(--grass);background:#EAF9F0}
@@ -150,10 +250,10 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 .form{display:grid;gap:10px;border-top:2px dashed var(--line);padding-top:12px}
 .form label{font-weight:800;font-size:14px}
 .form input{width:100%;font:inherit;font-weight:700;padding:10px 12px;border:2px solid var(--line);border-radius:12px}
-.avs,.ages{display:flex;flex-wrap:wrap;gap:6px}
+.avs,.ages,.opts{display:flex;flex-wrap:wrap;gap:6px}
 .avs button{width:48px;height:48px;font-size:28px;border-radius:12px;border:2px solid var(--line);background:var(--card)}
-.avs button[aria-pressed="true"],.ages button[aria-pressed="true"]{border-color:var(--grass);background:#EAF9F0}
-.ages button{border:2px solid var(--line);border-radius:12px;background:var(--card);padding:8px 14px;font-weight:800}
+.avs button[aria-pressed="true"],.ages button[aria-pressed="true"],.opts button[aria-pressed="true"]{border-color:var(--grass);background:#EAF9F0}
+.ages button,.opts button{border:2px solid var(--line);border-radius:12px;background:var(--card);padding:8px 14px;font-weight:800}
 .err{color:var(--coralDk);font-weight:700;font-size:14px;min-height:1em;margin:0}
 .path{display:flex;flex-direction:column;align-items:center;gap:18px;padding-block:8px}
 .unit{width:100%;border-radius:16px;background:var(--grass);color:#fff;padding:12px 16px}
@@ -163,13 +263,34 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 .node{display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none}
 .node .dot{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-size:32px;background:var(--grass);box-shadow:0 6px 0 var(--grassDk)}
 .node.done .dot{background:var(--sun);box-shadow:0 6px 0 var(--sunDk)}
-.node.locked .dot{background:#D9E2EE;box-shadow:0 6px 0 #B9C6D8;filter:grayscale(1)}
 .node.current .dot{animation:bob 1.4s ease-in-out infinite}
 .node span{font-weight:800;font-size:14px}
 .node small{font-size:13px;color:var(--sunDk);min-height:1em}
 @keyframes bob{50%{transform:translateY(-5px)}}
 .shellgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:20px;align-items:start}
 
+/* grown-up modal + PIN pad */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(29,40,70,.6);display:grid;place-items:center;padding:16px}
+.sheet{background:var(--card);border-radius:24px;padding:22px;width:min(100%,380px);display:grid;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.sheet h2{font-size:26px}
+.sheet p{margin:0;color:var(--muted);font-weight:700}
+.sheet .big{font-size:56px;line-height:1}
+.pindots{display:flex;gap:14px;justify-content:center}
+.pindots i{width:18px;height:18px;border-radius:50%;border:3px solid var(--grape)}
+.pindots i.on{background:var(--grape)}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.keypad button{height:56px;border-radius:16px;border:2px solid var(--line);border-bottom-width:5px;background:var(--card);font-family:var(--display);font-size:24px;font-weight:800}
+.settings{display:grid;gap:12px;text-align:left}
+.settings h4{margin:0;font-size:14px;font-weight:800}
+.settings .row{display:grid;gap:6px}
+.settings .opts{gap:6px}
+
+@media (max-width:520px){
+  .tag,.gtxt{display:none}
+  .brand{font-size:19px}
+  .topin{padding-block:8px}
+  .chipbtn{padding:5px 8px;font-size:14px}
+}
 @media (prefers-reduced-motion: reduce){
   *{animation:none!important;transition:none!important}
 }
@@ -177,8 +298,12 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 
 <header class="top">
   <div class="topin">
-    <div class="brand"><span class="logo"><i></i><i></i><i></i><i></i></span>Code Hoppers <span class="tag">Prototype v1</span></div>
-    <button class="who" id="whoBtn" type="button"></button>
+    <div class="brand"><span class="logo"><i></i><i></i><i></i><i></i></span>Code Hoppers <span class="tag">Prototype v2</span></div>
+    <div class="topright">
+      <span class="chipbtn timer" id="timer" aria-live="polite">⏱ 15:00</span>
+      <button class="chipbtn" id="whoBtn" type="button"></button>
+      <button class="chipbtn" id="parentBtn" type="button" aria-label="Grown-ups">🔒<span class="gtxt"> Grown-ups</span></button>
+    </div>
   </div>
   <nav class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-tab="shell">App shell</button>
@@ -191,8 +316,9 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
   <!-- SHELL -->
   <section data-panel="shell">
     <div class="intro">
-      <h2>Who's playing, and where are they on the path</h2>
-      <p>Pick a player to see their learning path. Wins in the game tabs add XP to whoever is selected, so you can watch progress save. Pip and Juno are sample players.</p>
+      <h2>Who's playing, and where they are on the path</h2>
+      <p>Pick a player to see their path. Wins add XP to whoever is selected. Pip and Juno are sample players.</p>
+      <p>New in v2: 11 more games, squares that line up exactly with each move, and a 15-minute play limit that a grown-up unlocks with a PIN. Open 🔒 Grown-ups to set the PIN, or turn on the 30-second demo to see the lock.</p>
     </div>
     <div class="shellgrid">
       <div class="panel">
@@ -223,11 +349,12 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
   <section data-panel="young" hidden>
     <div class="intro">
       <h2>Ages 4–6: tap, no reading needed</h2>
-      <p>Big targets, pictures instead of words, a voice that reads the instructions (tap 🔊), and no hearts to lose. Every game here is one level.</p>
+      <p>Big targets, pictures instead of words, a voice that reads the instructions (tap 🔊), and no hearts to lose. Games marked New are options to compare.</p>
     </div>
     <div class="grid">
-      <article class="game" id="A1" data-tier="young" data-say="Help the bunny reach the carrot. Tap the arrows to make a path, then press go.">
-        <div class="ghead"><span class="code">A1</span><div><h3>Bunny Hop</h3><p class="skill">Sequencing</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
+      <h3 class="unithead">Unit 1 · First steps</h3>
+
+      <article class="game" id="A1" data-tier="young" data-title="Bunny Hop" data-skill="Sequencing" data-say="Help the bunny reach the carrot. Tap the arrows to make a path, then press go.">
         <p class="how">Tap arrows to plan the bunny's hops, then press Go. Tap a planned arrow to remove it.</p>
         <div class="play">
           <div class="boardHost"></div>
@@ -235,40 +362,92 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
           <div class="palette"></div>
           <div class="actions"><button type="button" class="btn ghost clear">Clear</button><button type="button" class="btn go">▶ Go</button></div>
         </div>
-        <div class="result" hidden></div>
         <details class="notes"><summary>Design notes</summary><ul>
-          <li>Arrows move in screen directions (up is up). Turning left/right relative to the bunny is too abstract under 6.</li>
+          <li>Arrows move in screen directions (up is up). Turning relative to the bunny is too abstract under 6.</li>
           <li>The block lights up as it runs so kids link each block to each hop.</li>
-          <li>Later levels: longer paths, a second carrot to collect, then "hop twice" blocks.</li>
         </ul></details>
       </article>
 
-      <article class="game" id="A2" data-tier="young" data-say="What comes next on the train? Tap the right one.">
-        <div class="ghead"><span class="code">A2</span><div><h3>Pattern Train</h3><p class="skill">Patterns</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
-        <p class="how">Spot the pattern and pick the next train car. Three rounds, each one a little harder.</p>
+      <article class="game" id="A6" data-tier="young" data-new data-title="Copy the Dance" data-skill="Remembering steps" data-say="Watch the robot dance. Then tap the moves in the same order.">
+        <p class="how">Press Watch to see the robot's dance, then tap the moves in the same order.</p>
+        <div class="play">
+          <div class="dots"></div>
+          <div class="stage"><span>🤖</span><span class="move">❔</span></div>
+          <div class="seqrow" aria-label="Your moves"></div>
+          <div class="choices moves"></div>
+          <div class="actions"><button type="button" class="btn alt watch">👀 Watch</button></div>
+        </div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>A program is a list of steps run in order. Remembering and replaying a sequence is the same skill without any arrows.</li>
+          <li>Rounds grow from 3 to 4 moves. Later: a move that repeats ("clap clap clap") as a first look at loops.</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="A2" data-tier="young" data-title="Pattern Train" data-skill="Patterns" data-say="What comes next on the train? Tap the right one.">
+        <p class="how">Spot the pattern and pick the next train car. Three rounds.</p>
         <div class="play">
           <div class="dots"></div>
           <div class="train"></div>
           <div class="choices"></div>
         </div>
-        <div class="result" hidden></div>
         <details class="notes"><summary>Design notes</summary><ul>
           <li>Patterns are the seed of loops: "red, blue, again".</li>
-          <li>Round types: AB, AAB, ABC. Later: fill a gap in the middle, or build your own pattern.</li>
+          <li>Round types: AB, AAB, ABC.</li>
         </ul></details>
       </article>
 
-      <article class="game" id="A3" data-tier="young" data-say="How do we grow a flower? Tap the pictures in the right order.">
-        <div class="ghead"><span class="code">A3</span><div><h3>Seed Steps</h3><p class="skill">Order of steps</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
-        <p class="how">Put the picture cards in order: what happens first, next, last. Tap a filled box to take a card back.</p>
+      <article class="game" id="A3" data-tier="young" data-title="Seed Steps" data-skill="Order of steps" data-say="How do we grow a flower? Tap the pictures in the right order.">
+        <p class="how">Put the picture cards in order: first, next, last. Tap a filled box to take a card back.</p>
         <div class="play">
           <div class="slots"></div>
           <div class="cards"></div>
         </div>
-        <div class="result" hidden></div>
         <details class="notes"><summary>Design notes</summary><ul>
-          <li>An algorithm is a recipe. Everyday routines (brushing teeth, making a sandwich) make that concrete.</li>
-          <li>Only the wrong boxes turn red, so kids fix part of the answer instead of starting over.</li>
+          <li>An algorithm is a recipe. Everyday routines make that concrete.</li>
+          <li>Only the wrong boxes turn red, so kids fix part of the answer.</li>
+        </ul></details>
+      </article>
+
+      <h3 class="unithead">Unit 2 · Little loops and rules</h3>
+
+      <article class="game" id="A4" data-tier="young" data-new data-title="Hop Hop Hop" data-skill="First loops" data-say="The bunny has only three hop cards. Use the plus button to make a card hop more than once.">
+        <p class="how">Only 3 cards fit. Pick an arrow, then press + to make that card hop more times. The dots show how many hops.</p>
+        <div class="play">
+          <div class="boardHost"></div>
+          <div class="hop3"></div>
+          <div class="palette"></div>
+          <div class="actions"><button type="button" class="btn ghost clear">Clear</button><button type="button" class="btn go">▶ Go</button></div>
+        </div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>A loop without the word: "this arrow, 3 times". Dots show the count for kids who can't read numbers yet.</li>
+          <li>The 3-card limit makes repeating necessary, the same trick the 7–9 Loop Maze uses with stars.</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="A5" data-tier="young" data-new data-title="Weather Bear" data-skill="If this, then that" data-say="Teach the bear what to wear. When it is sunny, rainy or snowy, what should the bear put on? Fill the boxes, then press go.">
+        <p class="how">Teach the bear a rule for each kind of weather, then press Go and watch the bear follow your rules.</p>
+        <div class="play">
+          <div class="rules"></div>
+          <div class="choices items"></div>
+          <div class="stage"><span class="sky">🌤️</span><span>🐻</span><span class="wear"></span></div>
+          <div class="actions"><button type="button" class="btn go">▶ Go</button></div>
+        </div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>The kid writes the rules, then the bear runs them. If a rule is wrong, the bear wears sunglasses in the rain, which kids find funny and remember.</li>
+          <li>Later: two conditions ("rainy AND cold").</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="A7" data-tier="young" data-new data-title="Where Will It Land?" data-skill="Reading code" data-say="Read the arrows. Where will the bunny stop? Tap that square.">
+        <p class="how">Follow the arrows in your head, then tap the square where the bunny will stop. Three rounds.</p>
+        <div class="play">
+          <div class="dots"></div>
+          <div class="tray prog readonly"></div>
+          <div class="boardHost"></div>
+        </div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>Predicting what code does before running it. Good for 5–6 year olds who have played Bunny Hop.</li>
+          <li>After the guess, the bunny runs the arrows so the kid can check their thinking.</li>
         </ul></details>
       </article>
     </div>
@@ -278,12 +457,13 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
   <section data-panel="older" hidden>
     <div class="intro">
       <h2>Ages 7–9: real programming ideas</h2>
-      <p>Short text is fine here. Hearts make mistakes count, and stars reward shorter programs, the way coders aim for neat code.</p>
+      <p>Short text is fine here. Hearts make mistakes count, and stars reward shorter programs.</p>
     </div>
     <div class="grid">
-      <article class="game" id="B1" data-tier="older" data-say="Get the frog to the lily pad. Use a repeat block to make your program short.">
-        <div class="ghead"><span class="code">B1</span><div><h3>Loop Maze</h3><p class="skill">Loops</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
-        <p class="how">Get the frog to the lily pad. Add a Repeat block, then tap arrows to fill it (tap the loop's box to fill it, the main box to add after it). 3 blocks or fewer earns ⭐⭐⭐.</p>
+      <h3 class="unithead">Unit 1 · Code moves</h3>
+
+      <article class="game" id="B1" data-tier="older" data-title="Loop Maze" data-skill="Loops" data-say="Get the frog to the lily pad. Use a repeat block to make your program short.">
+        <p class="how">Get the frog to the lily pad. Add a Repeat block and fill it with arrows (tap a box to choose where arrows go).</p>
         <div class="play">
           <div class="hearts"></div>
           <div class="boardHost"></div>
@@ -292,32 +472,83 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
           <div class="palette"></div>
           <div class="actions"><button type="button" class="btn ghost clear">Clear</button><button type="button" class="btn go">▶ Run</button></div>
         </div>
-        <div class="result" hidden></div>
         <details class="notes"><summary>Design notes</summary><ul>
-          <li>The staircase takes 10 single arrows. A Repeat ×5 of → ↑ takes 3 blocks. The star rule makes the loop worth discovering.</li>
-          <li>Next steps: nested loops, then "repeat until at the goal".</li>
+          <li>10 single arrows work, but Repeat 5 × (→ ↑) takes 3 blocks. The star rule makes the loop worth finding.</li>
         </ul></details>
       </article>
 
-      <article class="game" id="B2" data-tier="older" data-say="This program has a bug. Run it, find the wrong block, and tap it to fix it.">
-        <div class="ghead"><span class="code">B2</span><div><h3>Bug Hunt</h3><p class="skill">Debugging</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
-        <p class="how">The robot's program has one wrong block. Run it, watch where it goes wrong, then tap a block to turn it.</p>
+      <article class="game" id="B2" data-tier="older" data-title="Bug Hunt" data-skill="Debugging" data-say="This program has a bug. Run it, find the wrong block, and tap it to fix it.">
+        <p class="how">The robot's program has one wrong block. Run it, watch where it crashes, then tap a block to turn it.</p>
         <div class="play">
           <div class="hearts"></div>
           <div class="boardHost"></div>
           <div class="tray prog"></div>
           <div class="actions"><button type="button" class="btn go">▶ Run</button></div>
         </div>
-        <div class="result" hidden></div>
         <details class="notes"><summary>Design notes</summary><ul>
-          <li>Reading code is a separate skill from writing it. Debugging builds it.</li>
+          <li>Reading code is a separate skill from writing it.</li>
           <li>The failing block flashes red so the kid can trace cause and effect.</li>
-          <li>Later: two bugs, a missing block, or an extra block.</li>
         </ul></details>
       </article>
 
-      <article class="game" id="B3" data-tier="older" data-say="Build a rule so the sorting machine puts every shape in the right basket.">
-        <div class="ghead"><span class="code">B3</span><div><h3>Sorting Machine</h3><p class="skill">If / else</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>
+      <article class="game" id="B4" data-tier="older" data-new data-title="Tower Counter" data-skill="Counting loops" data-say="Set the counting machine so the towers fill the dotted outlines.">
+        <p class="how">The machine counts from START to STOP, jumping each time. At every count it builds a tower that tall. Make the towers fill the dotted outlines.</p>
+        <div class="play">
+          <div class="dots"></div>
+          <div class="towers"></div>
+          <div class="countbox">count = <b>–</b></div>
+          <div class="rule">
+            <div><span class="kw">START</span> at <span class="stepper" data-k="start"><button type="button" class="minus" aria-label="Lower start">−</button><b></b><button type="button" class="plus" aria-label="Raise start">+</button></span></div>
+            <div><span class="kw">STOP</span> at <span class="stepper" data-k="stop"><button type="button" class="minus" aria-label="Lower stop">−</button><b></b><button type="button" class="plus" aria-label="Raise stop">+</button></span></div>
+            <div><span class="kw">JUMP</span> by</div>
+            <div class="chips jumps"></div>
+            <div><span class="kw">EACH TIME</span> build a tower as tall as the count</div>
+          </div>
+          <div class="actions"><button type="button" class="btn go">▶ Count</button></div>
+        </div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>This is a for loop (<code>for count = 2 to 8 step 2</code>) without the name. The counter changes on each pass and the body uses it.</li>
+          <li>Three skylines: count up by 1, count by 2s, count down. Later: the kid writes the "each time" step too (tower = count × 2).</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="B8" data-tier="older" data-new data-title="Make-a-Block" data-skill="Functions" data-say="Build your own star block for the jump over a rock, then use it again and again.">
+        <p class="how">The kangaroo must jump three rocks. Put the jump's arrows inside ⭐ My block once, then use ⭐ in the main program. 9 blocks or fewer earns ⭐⭐⭐.</p>
+        <div class="play">
+          <div class="hearts"></div>
+          <div class="boardHost"></div>
+          <div class="counter"></div>
+          <div class="fnbox"><div class="loophead">⭐ My block is:</div><div class="tray fnbody" data-empty="Tap here, then add arrows"></div></div>
+          <div class="tray prog" data-empty="Main program"></div>
+          <div class="palette"></div>
+          <div class="actions"><button type="button" class="btn ghost clear">Clear</button><button type="button" class="btn go">▶ Run</button></div>
+        </div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>A function is a named list of steps you can reuse. The jump (↑ → → ↓) is written once and called three times.</li>
+          <li>Repeat is left out on purpose so the only way to 3 stars is your own block.</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="B10" data-tier="older" data-new data-title="Draw Bot" data-skill="Drawing with code" data-say="Program the drawing robot to trace the dotted shape.">
+        <p class="how">The robot draws as it moves. Trace the dotted shape exactly. ⬆ moves one dot forward, ↻ and ↺ turn on the spot.</p>
+        <div class="play">
+          <div class="dots"></div>
+          <div class="hearts"></div>
+          <div class="paper"></div>
+          <div class="counter"></div>
+          <div class="tray prog" data-empty="Main program"></div>
+          <div class="palette"></div>
+          <div class="actions"><button type="button" class="btn ghost clear">Clear</button><button type="button" class="btn go">▶ Draw</button></div>
+        </div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>Turning is relative to the robot, which is a step up from screen arrows and fits 7–9.</li>
+          <li>Square, then staircase. Both are shortest with a Repeat, so drawing reinforces loops.</li>
+        </ul></details>
+      </article>
+
+      <h3 class="unithead">Unit 2 · Logic and numbers</h3>
+
+      <article class="game" id="B3" data-tier="older" data-title="Sorting Machine" data-skill="If / else" data-say="Build a rule so the sorting machine puts every shape in the right basket.">
         <p class="how">Pick the condition that makes the machine sort correctly, then run it. Two puzzles.</p>
         <div class="play">
           <div class="goal"></div>
@@ -331,48 +562,139 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
           <div class="baskets"><div class="basket"><h4>⬅ Left</h4><div class="in L"></div></div><div class="basket"><h4>Right ➡</h4><div class="in R"></div></div></div>
           <div class="actions"><button type="button" class="btn go">▶ Run machine</button></div>
         </div>
-        <div class="result" hidden></div>
         <details class="notes"><summary>Design notes</summary><ul>
-          <li>The skill is choosing which property matters (shape or colour), the core of writing a condition.</li>
-          <li>Later: AND/OR ("blue and a star"), then ELSE IF with three baskets.</li>
+          <li>The skill is choosing which property matters (shape or colour).</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="B5" data-tier="older" data-new data-title="Odd or Even Gate" data-skill="Logic rules" data-say="Build a rule that sends every even number through the even door. Hint: you only need to look at the last digit.">
+        <p class="how">Pick which last digits make a number even. The gate checks only the last digit, even for 1001. Tap a digit to see it split into pairs.</p>
+        <div class="play">
+          <div class="belt nums"></div>
+          <div class="rule">
+            <div><span class="kw">IF</span>the last digit is one of:</div>
+            <div class="chips digits"></div>
+            <div class="pairs"></div>
+            <div><span class="kw">THEN</span>EVEN door</div>
+            <div><span class="kw">ELSE</span>ODD door</div>
+          </div>
+          <div class="baskets"><div class="basket"><h4>Even door</h4><div class="in L"></div></div><div class="basket"><h4>Odd door</h4><div class="in R"></div></div></div>
+          <div class="actions"><button type="button" class="btn go">▶ Run gate</button></div>
+        </div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>Two ideas: even means "splits into pairs with none left over", and a rule can check one small part (the last digit) to decide about a big number.</li>
+          <li>The 10 test numbers end in all 10 digits, so every chip choice gets tested.</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="B9" data-tier="older" data-new data-title="Magic Jar" data-skill="Variables" data-say="Read the program. What number is in the jar at the end?">
+        <p class="how">The jar holds one number and the program changes it. Read the program and predict the number at the end, then watch it run.</p>
+        <div class="play">
+          <div class="dots"></div>
+          <div class="codepanel"></div>
+          <div class="jar"><span aria-hidden="true">🫙</span><b>?</b></div>
+          <p class="q">What is in the jar at the end?</p>
+          <div class="choices nums"></div>
+        </div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>A variable is a named box whose value changes. Wording follows Scratch ("set jar to", "change jar by").</li>
+          <li>Round 2 mixes in a loop, round 3 has a trap: doubling before subtracting gives 20.</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="B6" data-tier="older" data-new data-title="Block Adder" data-skill="Place value" data-say="Add the numbers with blocks. Push the ones together first, trade ten ones for a ten, then push the tens.">
+        <p class="how">Run the adding recipe with the buttons, in the right order. A column can hold at most 9.</p>
+        <div class="play">
+          <div class="dots"></div>
+          <div class="hearts"></div>
+          <div class="mat"></div>
+          <ol class="algo">
+            <li>Push the ones together</li>
+            <li>10 or more ones? Trade 10 ones for 1 ten</li>
+            <li>Push the tens together</li>
+            <li>Read the answer</li>
+          </ol>
+          <div class="actions">
+            <button type="button" class="btn alt small" data-act="ones">⬇ Push ones</button>
+            <button type="button" class="btn alt small" data-act="trade">🔁 Trade 10 ones</button>
+            <button type="button" class="btn alt small" data-act="tens">⬇ Push tens</button>
+            <button type="button" class="btn small" data-act="read">👀 Read answer</button>
+          </div>
+          <div class="choices nums" hidden></div>
+        </div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>Column addition is an algorithm with a condition (step 2) inside it. The kid runs it by hand.</li>
+          <li>Wrong answers on offer are the common mistakes: forgetting the carry (52) and writing 12 ones (512).</li>
+        </ul></details>
+      </article>
+
+      <article class="game" id="B7" data-tier="older" data-new data-title="Mirror Numbers" data-skill="Palindromes" data-say="A mirror number reads the same forwards and backwards. Find them, then use the flip and add machine.">
+        <p class="how">A mirror number reads the same forwards and backwards, like 121. Round 1: find them all. Round 2: run the flip-and-add machine until it makes one.</p>
+        <div class="play">
+          <div class="dots"></div>
+          <div class="mstage" style="width:100%;display:flex;flex-direction:column;gap:12px;align-items:center"></div>
+        </div>
+        <details class="notes"><summary>Design notes</summary><ul>
+          <li>Checking a palindrome is an algorithm: compare first and last digit, move inwards.</li>
+          <li>Flip-and-add is a "repeat until" loop. The kid decides when to stop, so they run the loop condition themselves.</li>
         </ul></details>
       </article>
     </div>
   </section>
 </main>
 
+<div class="modal" id="modal" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mTitle" id="sheet"></div></div>
+
 <script>
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DIRS={U:[0,-1,'↑'],R:[1,0,'→'],D:[0,1,'↓'],L:[-1,0,'←']};
 const ORDER=['U','R','D','L'];
+const DNAME={U:'up',R:'right',D:'down',L:'left'};
+const ARROW_OPS=ORDER.map(d=>({id:d,glyph:DIRS[d][2],label:DNAME[d]}));
+const STEP=380;
 
 function say(text){
   try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.rate=.9; u.pitch=1.1; speechSynthesis.speak(u);}catch(e){}
 }
-$$('.speak').forEach(b=>b.onclick=()=>say(b.closest('.game').dataset.say));
 
-/* ---------- profiles & progress ---------- */
+/* ---------- card chrome ---------- */
+$$('.game').forEach(card=>{
+  const d=card.dataset;
+  card.insertAdjacentHTML('afterbegin',`<div class="ghead"><span class="code">${card.id}</span><div><h3>${d.title}${'new' in d?' <span class="newtag">New</span>':''}</h3><p class="skill">${d.skill}</p></div><button class="speak" type="button" aria-label="Read aloud">🔊</button></div>`);
+  const r=document.createElement('div'); r.className='result'; r.hidden=true; r.setAttribute('role','status');
+  card.insertBefore(r,$('.notes',card));
+  $('.speak',card).onclick=()=>say(d.say);
+});
+
+/* ---------- storage ---------- */
 const AVATARS=['🐰','🐸','🦊','🐼','🐯','🐙','🦄','🐢'];
-const GAMES={
-  young:[{id:'A1',name:'Bunny Hop',icon:'🥕'},{id:'A2',name:'Pattern Train',icon:'🚂'},{id:'A3',name:'Seed Steps',icon:'🌻'},{id:null,name:'Hop Twice',icon:'🔒'}],
-  older:[{id:'B1',name:'Loop Maze',icon:'🔁'},{id:'B2',name:'Bug Hunt',icon:'🐞'},{id:'B3',name:'Sorting Machine',icon:'🧺'},{id:null,name:'Functions',icon:'🔒'}]
+const TRACKS={
+  young:[{unit:'Unit 1 · First steps',games:['A1','A6','A2','A3']},{unit:'Unit 2 · Little loops and rules',games:['A4','A5','A7']}],
+  older:[{unit:'Unit 1 · Code moves',games:['B1','B2','B4','B8','B10']},{unit:'Unit 2 · Logic and numbers',games:['B3','B5','B9','B6','B7']}]
 };
-const KEY='code-hoppers-v1';
+const ICONS={A1:'🥕',A2:'🚂',A3:'🌻',A4:'🐇',A5:'🐻',A6:'💃',A7:'📍',B1:'🔁',B2:'🐞',B3:'🧺',B4:'🏙️',B5:'🚪',B6:'🧮',B7:'🪞',B8:'⭐',B9:'🫙',B10:'✏️'};
+const KEY='code-hoppers-v2';
 function load(){
-  try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s&&Array.isArray(s.profiles)) return s; }catch(e){}
-  return {current:'Pip',profiles:[
+  let s=null;
+  try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
+  if(!s||!Array.isArray(s.profiles)) s={current:'Pip',profiles:[
     {name:'Pip',avatar:'🐰',age:'young',xp:20,streak:3,last:null,done:{A1:3}},
     {name:'Juno',avatar:'🦊',age:'older',xp:45,streak:5,last:null,done:{B1:2,B2:3}}
   ]};
+  s.time=Object.assign({limitMin:15,demo:false,left:null,locked:false,overtime:false,graceEnd:null,pin:null},s.time||{});
+  return s;
 }
 let S=load();
+const limitSecs=()=>S.time.demo?30:S.time.limitMin*60;
+if(S.time.left==null) S.time.left=limitSecs();
 function save(){ try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){} }
 const cur=()=>S.profiles.find(p=>p.name===S.current)||null;
 
 function renderWho(){
   const p=cur(), w=$('#whoBtn');
-  w.innerHTML=p?`<span class="av">${p.avatar}</span>${p.name}<span class="stat">⭐ ${p.xp}</span><span class="stat">🔥 ${p.streak}</span>`:'Pick a player';
+  w.innerHTML=p?`<span class="av">${p.avatar}</span>${esc(p.name)}<span class="stat">⭐ ${p.xp}</span><span class="stat">🔥 ${p.streak}</span>`:'Pick a player';
 }
 $('#whoBtn').onclick=()=>showTab('shell');
 
@@ -381,7 +703,7 @@ function renderPlayers(){
   S.profiles.forEach(p=>{
     const b=document.createElement('button'); b.type='button'; b.className='ptile';
     b.setAttribute('aria-pressed',p.name===S.current);
-    b.innerHTML=`<span class="av">${p.avatar}</span>${p.name}<small>${p.age==='young'?'Ages 4–6':'Ages 7–9'} · ⭐ ${p.xp}</small>`;
+    b.innerHTML=`<span class="av">${p.avatar}</span>${esc(p.name)}<small>${p.age==='young'?'Ages 4–6':'Ages 7–9'} · ⭐ ${p.xp}</small>`;
     b.onclick=()=>{S.current=p.name;save();refresh();};
     box.appendChild(b);
   });
@@ -392,28 +714,25 @@ function renderPlayers(){
 }
 function renderPath(){
   const p=cur(), box=$('#path'); box.innerHTML='';
-  if(!p){box.textContent='Pick a player to see their path.';return;}
+  if(!p){$('#pathTitle').textContent='Learning path';box.textContent='Pick a player to see their path.';return;}
   $('#pathTitle').textContent=`${p.name}'s path`;
-  const older=p.age==='older';
-  box.insertAdjacentHTML('beforeend',`<div class="unit ${older?'older':''}"><h4>Unit 1 · ${older?'Loops, bugs and choices':'First steps'}</h4><p>${older?'Ages 7–9':'Ages 4–6'}</p></div>`);
   const offs=[0,56,0,-56];
-  let found=false;
-  GAMES[p.age].forEach((g,i)=>{
-    const done=g.id&&p.done[g.id];
-    let st='locked';
-    if(done) st='done'; else if(!found&&g.id){st='current';found=true;}
-    else if(g.id) st='open';
-    const n=document.createElement('button'); n.type='button'; n.className='node '+st;
-    n.style.transform=`translateX(${offs[i%4]}px)`;
-    n.innerHTML=`<span class="dot">${g.icon}</span><span>${g.name}</span><small>${done?'⭐'.repeat(done):''}</small>`;
-    if(g.id) n.onclick=()=>{showTab(p.age);document.getElementById(g.id).scrollIntoView({behavior:'smooth',block:'start'});};
-    else n.disabled=true;
-    box.appendChild(n);
+  let found=false, k=0;
+  TRACKS[p.age].forEach(u=>{
+    box.insertAdjacentHTML('beforeend',`<div class="unit ${p.age}"><h4>${u.unit}</h4><p>${p.age==='young'?'Ages 4–6':'Ages 7–9'}</p></div>`);
+    u.games.forEach(id=>{
+      const done=p.done[id]; let st='open';
+      if(done) st='done'; else if(!found){st='current';found=true;}
+      const n=document.createElement('button'); n.type='button'; n.className='node '+st;
+      n.style.transform=`translateX(${offs[k++%4]}px)`;
+      n.innerHTML=`<span class="dot">${ICONS[id]}</span><span>${document.getElementById(id).dataset.title}</span><small>${done?'⭐'.repeat(done):''}</small>`;
+      n.onclick=()=>{showTab(p.age);document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});};
+      box.appendChild(n);
+    });
   });
 }
 function refresh(){renderWho();renderPlayers();renderPath();}
 
-// new player form
 let newAv='🐰', newAge='young';
 AVATARS.forEach(a=>{const b=document.createElement('button');b.type='button';b.textContent=a;b.setAttribute('aria-pressed',a===newAv);b.onclick=()=>{newAv=a;$$('#avs button').forEach(x=>x.setAttribute('aria-pressed',x===b));};$('#avs').appendChild(b);});
 $$('#ages button').forEach(b=>b.onclick=()=>{newAge=b.dataset.age;$$('#ages button').forEach(x=>x.setAttribute('aria-pressed',x===b));});
@@ -430,12 +749,12 @@ $('#newForm').addEventListener('submit',e=>{
 
 function award(id,stars){
   const p=cur(); if(!p) return 'Pick a player on the App shell tab to save progress.';
-  p.xp+=10+stars*5;
-  p.done[id]=Math.max(p.done[id]||0,stars);
+  const xp=10+stars*5;
+  p.xp+=xp; p.done[id]=Math.max(p.done[id]||0,stars);
   const today=new Date().toDateString();
   if(p.last!==today){p.streak+=1;p.last=today;}
   save(); refresh();
-  return `+${10+stars*5} XP for ${p.name}`;
+  return `+${xp} XP for ${p.name}`;
 }
 
 /* ---------- tabs ---------- */
@@ -443,16 +762,121 @@ function showTab(t){
   $$('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
   $$('[data-panel]').forEach(s=>s.hidden=s.dataset.panel!==t);
   try{speechSynthesis.cancel();}catch(e){}
+  if(S.time.overtime) lockNow();   // leaving a game after time is up ends the session
 }
 $$('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
-/* ---------- shared UI ---------- */
-function result(card,{ok,title,msg,btn,onBtn}){
-  const r=$('.result',card);
+/* ---------- play-time limit + grown-up PIN ---------- */
+const GRACE_MS=3*60*1000;   // hard stop if the current game is never finished
+const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+function renderTimer(){
+  const t=$('#timer'), T=S.time;
+  t.classList.toggle('over',T.overtime||T.locked);
+  t.textContent=T.locked?'⏱ Locked':T.overtime?'⏱ Last game!':`⏱ ${fmt(T.left)}`;
+}
+let ticks=0;
+setInterval(()=>{
+  const T=S.time;
+  if(T.locked||document.hidden||!cur()) return;
+  if(!T.overtime){
+    T.left=Math.max(0,T.left-1);
+    if(T.left===0){T.overtime=true;T.graceEnd=Date.now()+GRACE_MS;save();say('Time is almost up. Finish this game.');}
+  } else if(Date.now()>T.graceEnd) lockNow();
+  if(++ticks%5===0) save();
+  renderTimer();
+},1000);
+function lockNow(){
+  const T=S.time; if(T.locked) return;
+  T.locked=true; T.overtime=false; T.graceEnd=null; save(); renderTimer();
+  try{speechSynthesis.cancel();}catch(e){}
+  openLock();
+}
+function unlock(){
+  Object.assign(S.time,{locked:false,overtime:false,graceEnd:null,left:limitSecs()});
+  save(); renderTimer(); closeModal();
+}
+
+async function hashPin(pin){
+  const txt='code-hoppers:'+pin;
+  try{const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+  catch(e){let h=0;for(const c of txt)h=(h*31+c.charCodeAt(0))|0;return 'x'+h;}
+}
+const modal=$('#modal'), sheet=$('#sheet');
+let modalClosable=false, keyHandler=null;
+function openModal(html,closable){modalClosable=closable;sheet.innerHTML=html;modal.hidden=false;}
+function closeModal(){modal.hidden=true;sheet.innerHTML='';keyHandler=null;}
+modal.addEventListener('click',e=>{if(e.target===modal&&modalClosable)closeModal();});
+document.addEventListener('keydown',e=>{if(!modal.hidden&&keyHandler)keyHandler(e);});
+
+// one PIN entry screen; resolves with the 4 digits typed
+function pinScreen({title,msg,icon='🔒',closable,onDone}){
+  openModal(`<div class="big">${icon}</div><h2 id="mTitle">${title}</h2><p class="pmsg">${msg}</p>
+    <div class="pindots">${'<i></i>'.repeat(4)}</div>
+    <div class="keypad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" data-k="${n}">${n}</button>`).join('')}<span></span><button type="button" data-k="0">0</button><button type="button" data-k="del" aria-label="Delete">⌫</button></div>
+    ${closable?'<button type="button" class="btn ghost" id="mClose">Close</button>':''}`,closable);
+  let v='';
+  const dots=$$('.pindots i',sheet);
+  const draw=()=>dots.forEach((d,i)=>d.classList.toggle('on',i<v.length));
+  const press=k=>{
+    if(k==='del'){v=v.slice(0,-1);draw();return;}
+    if(v.length>=4) return;
+    v+=k; draw();
+    if(v.length===4){const val=v;setTimeout(()=>onDone(val,{error(m){$('.pmsg',sheet).textContent=m;$('.pindots',sheet).classList.remove('shake');void sheet.offsetWidth;$('.pindots',sheet).classList.add('shake');v='';draw();}}),150);}
+  };
+  $$('.keypad button',sheet).forEach(b=>b.onclick=()=>press(b.dataset.k));
+  keyHandler=e=>{if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('del');else if(e.key==='Escape'&&closable)closeModal();};
+  if(closable) $('#mClose',sheet).onclick=closeModal;
+}
+// ask for the grown-up PIN (creating one first if none exists), then run onOk
+function askGrownup({title,msg,icon,closable,onOk}){
+  if(!S.time.pin){
+    pinScreen({title:'Create a grown-up PIN',msg:'Grown-up: choose 4 digits. Kids should not see them.',icon:'🔑',closable,onDone:(a)=>{
+      pinScreen({title:'Type it again',msg:'Same 4 digits, to be sure.',icon:'🔑',closable,onDone:async(b,ui)=>{
+        if(a!==b){ui.error('The two PINs did not match. Start again.');setTimeout(()=>askGrownup({title,msg,icon,closable,onOk}),900);return;}
+        S.time.pin=await hashPin(a); save(); onOk();
+      }});
+    }});
+    return;
+  }
+  pinScreen({title,msg,icon,closable,onDone:async(v,ui)=>{
+    if(await hashPin(v)===S.time.pin) onOk(); else ui.error('That PIN is not right. Try again.');
+  }});
+}
+function openLock(){
+  const p=cur();
+  askGrownup({title:`Time for a break${p?', '+esc(p.name):''}!`,msg:`You played for ${S.time.demo?'30 seconds (demo)':S.time.limitMin+' minutes'}. Ask a grown-up to type the PIN.`,icon:'🌙',closable:false,onOk:unlock});
+}
+$('#parentBtn').onclick=()=>askGrownup({title:'Grown-ups only',msg:'Type the PIN to change play time.',closable:true,onOk:openSettings});
+function openSettings(){
+  const T=S.time;
+  openModal(`<h2 id="mTitle">Grown-up settings</h2>
+    <div class="settings">
+      <div class="row"><h4>Play time before the lock</h4><div class="opts" id="limOpts">${[5,10,15,20,30].map(m=>`<button type="button" data-m="${m}" aria-pressed="${!T.demo&&T.limitMin===m}">${m} min</button>`).join('')}<button type="button" data-m="demo" aria-pressed="${T.demo}">30 s demo</button></div></div>
+      <p>When time runs out, the kid can finish the game they are in (up to 3 more minutes). Then the app locks until a grown-up types the PIN. The limit covers all players on this device.</p>
+      <div class="actions"><button type="button" class="btn alt small" id="sReset">Restart the timer</button><button type="button" class="btn warn small" id="sLock">Lock now</button><button type="button" class="btn ghost small" id="sPin">Change PIN</button></div>
+      <div class="actions"><button type="button" class="btn" id="sDone">Done</button></div>
+    </div>`,true);
+  keyHandler=e=>{if(e.key==='Escape')closeModal();};
+  $$('#limOpts button',sheet).forEach(b=>b.onclick=()=>{
+    if(b.dataset.m==='demo'){T.demo=true;} else {T.demo=false;T.limitMin=+b.dataset.m;}
+    T.left=limitSecs(); T.overtime=false; save(); renderTimer();
+    $$('#limOpts button',sheet).forEach(x=>x.setAttribute('aria-pressed',x===b));
+  });
+  $('#sReset',sheet).onclick=()=>{unlock();};
+  $('#sLock',sheet).onclick=()=>{closeModal();lockNow();};
+  $('#sPin',sheet).onclick=()=>{S.time.pin=null;save();askGrownup({title:'',msg:'',closable:true,onOk:()=>{closeModal();}});};
+  $('#sDone',sheet).onclick=closeModal;
+}
+
+/* ---------- shared game UI ---------- */
+function result(card,{ok,title,msg,btn,onBtn,final}){
+  const r=$('.result',card), T=S.time;
+  const ending=final&&T.overtime;   // time ran out during this game: finishing it ends the session
   r.className='result '+(ok?'ok':'bad');
-  r.innerHTML=`<div><strong>${title}</strong><span>${msg}</span></div><button type="button" class="btn ${ok?'':'warn'}">${btn}</button>`;
+  r.innerHTML=`<div><strong>${title}</strong><span>${msg}${ending?' That was the last game for now.':''}</span></div><button type="button" class="btn ${ok?'':'warn'}">${ending?'Finish':btn}</button>`;
   r.hidden=false;
-  $('button',r).onclick=()=>{r.hidden=true;onBtn&&onBtn();};
+  $('button',r).onclick=()=>{r.hidden=true;if(ending){lockNow();return;}onBtn&&onBtn();};
+  if(ending) setTimeout(()=>{if(S.time.overtime)lockNow();},8000);
   if(card.dataset.tier==='young') say(title);
 }
 function hideResult(card){$('.result',card).hidden=true;}
@@ -460,68 +884,198 @@ function hearts(el,max=3){
   let h=max; const draw=()=>{el.textContent='❤️'.repeat(h)+'🤍'.repeat(max-h);el.setAttribute('aria-label',h+' hearts left');};
   draw(); return {lose(){h=Math.max(0,h-1);draw();return h;},reset(){h=max;draw();}};
 }
-function stars(n){return '⭐'.repeat(n)+'☆'.repeat(3-n);}
+const stars=n=>'⭐'.repeat(n)+'☆'.repeat(3-n);
+const byTries=t=>t<=1?3:t===2?2:1;
+function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');}
+function dotsBar(card,n,done){$('.dots',card).innerHTML=Array.from({length:n},(_,i)=>`<i class="${i<done?'on':''}"></i>`).join('');}
 
 /* ---------- grid board ---------- */
+window.__boards=[];
 function makeBoard(host,cfg){
-  const {w,h,start,goal,walls=[],hero,prize,wallIcon='🌳',fs,bw}=cfg;
-  const wallSet=new Set(walls.map(([x,y])=>x+','+y));
+  const {w,h,start,goal=null,walls=[],hero,prize='',wallIcon='🌳',bw}=cfg;
+  const wallMap=new Map(walls.map(([x,y,ic])=>[x+','+y,ic||wallIcon]));
   const b=document.createElement('div'); b.className='board';
-  b.style.setProperty('--w',w); b.style.setProperty('--h',h);
-  if(fs) b.style.setProperty('--fs',fs); if(bw) b.style.setProperty('--bw',bw);
+  b.style.setProperty('--w',w); b.style.setProperty('--h',h); if(bw) b.style.setProperty('--bw',bw);
+  const cells=[];
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     const c=document.createElement('div'); const k=x+','+y;
-    c.className='cell'+(wallSet.has(k)?' wall':'');
-    if(wallSet.has(k)) c.textContent=wallIcon;
-    if(x===goal.x&&y===goal.y) c.textContent=prize;
-    b.appendChild(c);
+    c.className='cell';
+    if(wallMap.has(k)){c.classList.add('wall');c.textContent=wallMap.get(k);}
+    if(goal&&x===goal.x&&y===goal.y) c.textContent=prize;
+    cells.push(c); b.appendChild(c);
   }
   const s=document.createElement('div'); s.className='sprite'; s.textContent=hero; b.appendChild(s);
   host.innerHTML=''; host.appendChild(b);
   let pos;
   const place=(x,y)=>{s.style.left=(x*100/w)+'%';s.style.top=(y*100/h)+'%';};
   const reset=()=>{s.classList.remove('bump','win');pos={...start};place(pos.x,pos.y);};
+  const blocked=(x,y)=>x<0||y<0||x>=w||y>=h||wallMap.has(x+','+y);
   reset();
-  async function run(steps,onStep){
-    reset(); await sleep(250);
+  async function run(steps,onStep=()=>{}){
+    reset(); await sleep(200);
     for(let i=0;i<steps.length;i++){
       onStep(i);
-      const [dx,dy]=DIRS[steps[i].d], nx=pos.x+dx, ny=pos.y+dy;
-      if(nx<0||ny<0||nx>=w||ny>=h||wallSet.has(nx+','+ny)){
+      const [dx,dy]=DIRS[steps[i].op], nx=pos.x+dx, ny=pos.y+dy;
+      if(blocked(nx,ny)){
         place(pos.x+dx*.3,pos.y+dy*.3); await sleep(160); place(pos.x,pos.y);
-        s.classList.add('bump'); await sleep(450); return {ok:false,step:i};
+        s.classList.add('bump'); await sleep(450); return {ok:false,step:i,pos};
       }
-      pos={x:nx,y:ny}; place(nx,ny); await sleep(400);
-      if(nx===goal.x&&ny===goal.y){onStep(-1);s.classList.add('win');return {ok:true};}
+      pos={x:nx,y:ny}; place(nx,ny); await sleep(STEP);
+      if(goal&&nx===goal.x&&ny===goal.y){onStep(-1);s.classList.add('win');return {ok:true,pos};}
     }
-    onStep(-1); return {ok:false,step:null};
+    onStep(-1); return {ok:!goal,step:null,pos};
   }
-  return {run,reset};
-}
-function arrowPalette(host,onPick,big){
-  ORDER.forEach(d=>{const b=document.createElement('button');b.type='button';b.className='blk'+(big?' big':'');b.textContent=DIRS[d][2];b.setAttribute('aria-label','Add '+{U:'up',R:'right',D:'down',L:'left'}[d]);b.onclick=()=>onPick(d);host.appendChild(b);});
+  const api={run,reset,cells,el:b,w,h,place,sprite:s,blocked};
+  window.__boards.push(api);
+  return api;
 }
 
-/* ---------- A1 Bunny Hop ---------- */
+/* ---------- block editor (main program, Repeat blocks, one custom block) ---------- */
+function makeEditor(card,{ops,loop=false,func=false,max=14,goal=''}){
+  const tray=$('.prog',card), pal=$('.palette',card), fnTray=func?$('.fnbody',card):null, counter=$('.counter',card);
+  const main=[], fn=[];
+  let target=main, busy=false, onChange=()=>{};
+  const glyph=id=>ops.find(o=>o.id===id).glyph;
+  const count=()=>main.reduce((n,b)=>n+(b.t==='loop'?1+b.body.length:1),0)+fn.length;
+  function blk(item,list,i){
+    const b=document.createElement('button'); b.type='button';
+    b.className='blk'+(item.t==='call'?' call':'');
+    b.textContent=item.t==='call'?'⭐':glyph(item.op);
+    b.setAttribute('aria-label','Remove this block');
+    b.onclick=e=>{e.stopPropagation();if(busy)return;list.splice(i,1);changed();};
+    item.el=b; return b;
+  }
+  function draw(){
+    tray.innerHTML=''; tray.classList.toggle('active',target===main);
+    main.forEach((it,i)=>{
+      if(it.t!=='loop'){tray.appendChild(blk(it,main,i));return;}
+      const L=document.createElement('div'); L.className='loop'; it.el=L;
+      L.innerHTML=`<div class="loophead">🔁 Repeat <button type="button" class="minus" aria-label="Fewer times">−</button><span class="n">${it.n}</span><button type="button" class="plus" aria-label="More times">+</button> times<button type="button" class="x" aria-label="Remove repeat">✕</button></div>`;
+      const inner=document.createElement('div'); inner.className='tray'+(target===it?' active':''); inner.dataset.empty='Tap here, then add blocks';
+      it.body.forEach((m,j)=>inner.appendChild(blk(m,it.body,j)));
+      L.onclick=e=>{e.stopPropagation();if(busy)return;target=it;draw();};
+      $('.minus',L).onclick=e=>{e.stopPropagation();if(busy)return;it.n=Math.max(2,it.n-1);changed();};
+      $('.plus',L).onclick=e=>{e.stopPropagation();if(busy)return;it.n=Math.min(9,it.n+1);changed();};
+      $('.x',L).onclick=e=>{e.stopPropagation();if(busy)return;main.splice(i,1);if(target===it)target=main;changed();};
+      L.appendChild(inner); tray.appendChild(L);
+    });
+    if(fnTray){fnTray.innerHTML='';fnTray.classList.toggle('active',target===fn);fn.forEach((it,i)=>fnTray.appendChild(blk(it,fn,i)));}
+    if(counter) counter.textContent=`Blocks used: ${count()} of ${max}`+(goal?` · ${goal}`:'');
+  }
+  function changed(){draw();onChange();}
+  tray.onclick=()=>{if(busy)return;target=main;draw();};
+  if(fnTray) fnTray.onclick=()=>{if(busy)return;target=fn;draw();};
+  function add(item){
+    if(busy) return;
+    if(count()>=max){shake(counter);return;}
+    if(item.t==='loop'&&target!==main) target=main;
+    if(item.t==='call'&&target===fn){shake(fnTray);return;}  // a block can't use itself
+    const list=target===main?main:target===fn?fn:target.body;
+    list.push(item); if(item.t==='loop') target=item;
+    changed();
+  }
+  ops.forEach(o=>{const b=document.createElement('button');b.type='button';b.className='blk';b.textContent=o.glyph;b.setAttribute('aria-label','Add '+o.label);b.onclick=()=>add({t:'op',op:o.id});pal.appendChild(b);});
+  if(loop){const b=document.createElement('button');b.type='button';b.className='blk wide loopbtn';b.textContent='🔁 Repeat';b.onclick=()=>add({t:'loop',n:2,body:[]});pal.appendChild(b);}
+  if(func){const b=document.createElement('button');b.type='button';b.className='blk wide callbtn';b.textContent='⭐ My block';b.setAttribute('aria-label','Add my block');b.onclick=()=>add({t:'call'});pal.appendChild(b);}
+  function flatten(){
+    const out=[];
+    const push=(it,extra)=>{
+      if(it.t==='op') out.push({op:it.op,els:[it.el,...extra]});
+      else if(it.t==='call') fn.forEach(f=>out.push({op:f.op,els:[f.el,it.el,...extra]}));
+    };
+    main.forEach(it=>{if(it.t==='loop'){for(let k=0;k<it.n;k++)it.body.forEach(b=>push(b,[it.el]));}else push(it,[]);});
+    return out;
+  }
+  function highlight(steps,i){$$('.now',card).forEach(e=>e.classList.remove('now'));if(i>=0)steps[i].els.forEach(e=>e.classList.add('now'));}
+  draw();
+  return {flatten,count,highlight,redraw:draw,
+    clear(){main.length=0;fn.length=0;target=main;changed();},
+    onChange(f){onChange=f;},
+    get busy(){return busy;}, set busy(v){busy=v;}};
+}
+// Run/Clear wiring shared by the block-editor games
+function wireEditorGame(card,ed,{run,reset,H,id,starsFor,winTitle,bumpTitle,missTitle,levels}){
+  ed.onChange(()=>hideResult(card));
+  $('.clear',card).onclick=()=>{if(ed.busy)return;ed.clear();reset();};
+  $('.go',card).onclick=async()=>{
+    if(ed.busy)return;
+    const steps=ed.flatten(); if(!steps.length){shake($('.prog',card));return;}
+    ed.busy=true; hideResult(card);
+    const r=await run(steps,i=>ed.highlight(steps,i));
+    ed.busy=false;
+    if(r.ok){
+      const c=ed.count(), st=starsFor(c);
+      if(levels&&levels.hasNext()) result(card,{ok:true,title:winTitle,msg:`${stars(st)} with ${c} blocks. Ready for the next one?`,btn:'Next shape',onBtn:()=>{levels.next();ed.clear();reset();H&&H.reset();}});
+      else result(card,{ok:true,final:true,title:winTitle,msg:`${stars(st)} with ${c} blocks. ${award(id,st)}`,btn:'Play again',onBtn:()=>{levels&&levels.restart();ed.clear();reset();H&&H.reset();}});
+    } else {
+      if(r.step!=null) steps[r.step].els[0]?.classList.add('bad');
+      const left=H?H.lose():1;
+      result(card,{ok:false,title:r.step!=null?bumpTitle:missTitle,
+        msg:left?(H?'You lost a heart. Fix the program and run again.':'Fix the program and run again.'):'Out of hearts. In the full game this ends the lesson.',
+        btn:left?'Try again':'Refill hearts',onBtn:()=>{reset();ed.redraw();if(!left)H.reset();}});
+    }
+  };
+}
+function arrowPalette(host,onPick,big){
+  ORDER.forEach(d=>{const b=document.createElement('button');b.type='button';b.className='blk'+(big?' big':'');b.textContent=DIRS[d][2];b.setAttribute('aria-label','Add '+DNAME[d]);b.onclick=()=>onPick(d);host.appendChild(b);});
+}
+function pathWalls(w,h,path,icon){
+  const ps=new Set(path.map(p=>p+''));const out=[];
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(!ps.has(x+','+y))out.push([x,y,icon]);
+  return out;
+}
+
+/* ================= AGES 4–6 ================= */
+
+/* A1 Bunny Hop */
 (function(){
   const card=$('#A1'), tray=$('.prog',card);
-  const board=makeBoard($('.boardHost',card),{w:4,h:4,start:{x:0,y:3},goal:{x:3,y:0},walls:[[1,1],[2,1],[1,3]],hero:'🐰',prize:'🥕',wallIcon:'🪨',fs:'clamp(24px,8vw,40px)'});
+  const board=makeBoard($('.boardHost',card),{w:4,h:4,start:{x:0,y:3},goal:{x:3,y:0},walls:[[1,1],[2,1],[1,3]],hero:'🐰',prize:'🥕',wallIcon:'🪨'});
   let prog=[], tries=0, busy=false;
-  const draw=()=>{tray.innerHTML='';prog.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.className='blk big';b.textContent=DIRS[d][2];b.onclick=()=>{if(busy)return;prog.splice(i,1);draw();};tray.appendChild(b);});};
+  const draw=()=>{tray.innerHTML='';prog.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.className='blk big';b.textContent=DIRS[d][2];b.setAttribute('aria-label','Remove '+DNAME[d]);b.onclick=()=>{if(busy)return;prog.splice(i,1);draw();};tray.appendChild(b);});};
   arrowPalette($('.palette',card),d=>{if(busy||prog.length>=8)return;prog.push(d);draw();hideResult(card);},true);
   $('.clear',card).onclick=()=>{if(busy)return;prog=[];draw();board.reset();hideResult(card);};
   $('.go',card).onclick=async()=>{
     if(busy||!prog.length)return; busy=true; tries++; hideResult(card);
     const els=$$('.blk',tray);
-    const r=await board.run(prog.map(d=>({d})),i=>els.forEach((e,j)=>e.classList.toggle('now',j===i)));
+    const r=await board.run(prog.map(op=>({op})),i=>els.forEach((e,j)=>e.classList.toggle('now',j===i)));
     busy=false;
-    if(r.ok){const st=tries===1?3:tries===2?2:1; result(card,{ok:true,title:'Yummy! You did it!',msg:stars(st)+' '+award('A1',st),btn:'Play again',onBtn:()=>{prog=[];tries=0;draw();board.reset();}});}
+    if(r.ok){const st=byTries(tries); result(card,{ok:true,final:true,title:'Yummy! You did it!',msg:stars(st)+' '+award('A1',st),btn:'Play again',onBtn:()=>{prog=[];tries=0;draw();board.reset();}});}
     else{ if(r.step!=null) els[r.step]?.classList.add('bad');
       result(card,{ok:false,title:r.step!=null?'Bonk! A rock!':'Almost! Keep hopping',msg:'Change your plan and try again.',btn:'Try again',onBtn:()=>{board.reset();draw();}});}
   };
 })();
 
-/* ---------- A2 Pattern Train ---------- */
+/* A6 Copy the Dance */
+(function(){
+  const card=$('#A6');
+  const MOVES={clap:'👏',wave:'👋',stomp:'🦶',spin:'🌀'};
+  const rounds=[['clap','wave','clap'],['stomp','spin','wave','stomp']];
+  let r=0, got=[], watched=false, busy=false, misses=0;
+  const mv=$('.move',card), row=$('.seqrow',card), ch=$('.choices',card);
+  Object.entries(MOVES).forEach(([k,e])=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=e;b.dataset.m=k;b.setAttribute('aria-label',k);b.onclick=()=>tap(k,b);ch.appendChild(b);});
+  function setup(){got=[];watched=false;row.innerHTML='';mv.textContent='❔';dotsBar(card,rounds.length,r);$$('.choice',ch).forEach(b=>b.disabled=true);}
+  $('.watch',card).onclick=async()=>{
+    if(busy)return; busy=true; hideResult(card); got=[]; row.innerHTML='';
+    for(const m of rounds[r]){mv.textContent=MOVES[m];mv.classList.remove('pop');void mv.offsetWidth;mv.classList.add('pop');say(m);await sleep(950);}
+    mv.textContent='❔'; busy=false; watched=true; $$('.choice',ch).forEach(b=>b.disabled=false); say('Your turn');
+  };
+  async function tap(k,b){
+    if(busy||!watched)return;
+    const want=rounds[r][got.length];
+    if(k!==want){misses++;shake(b);say('Oops. Watch again');got=[];row.innerHTML='';return;}
+    got.push(k); row.insertAdjacentHTML('beforeend',`<span class="pop">${MOVES[k]}</span>`);
+    if(got.length===rounds[r].length){
+      busy=true; say('Yes!'); await sleep(800); busy=false; r++;
+      if(r<rounds.length) setup();
+      else{dotsBar(card,rounds.length,r);const st=misses===0?3:misses<3?2:1;
+        result(card,{ok:true,final:true,title:'What a dancer!',msg:stars(st)+' '+award('A6',st),btn:'Play again',onBtn:()=>{r=0;misses=0;setup();}});}
+    }
+  }
+  setup();
+})();
+
+/* A2 Pattern Train */
 (function(){
   const card=$('#A2');
   const rounds=[
@@ -529,28 +1083,28 @@ function arrowPalette(host,onPick,big){
     {seq:['🐶','🐶','🐱','🐶','🐶'],ans:'🐱',opts:['🐶','🐰','🐱']},
     {seq:['🍎','🍌','🍇','🍎','🍌'],ans:'🍇',opts:['🍇','🍎','🍌']}
   ];
-  let r=0, misses=0;
+  let r=0, misses=0, busy=false;
   function draw(){
-    const R=rounds[r];
-    $('.dots',card).innerHTML=rounds.map((_,i)=>`<i class="${i<r?'on':''}"></i>`).join('');
+    const R=rounds[r]; dotsBar(card,rounds.length,r);
     $('.train',card).innerHTML='<div class="car eng">🚂</div>'+R.seq.map(x=>`<div class="car">${x}</div>`).join('')+'<div class="car q">?</div>';
     const ch=$('.choices',card); ch.innerHTML='';
     R.opts.forEach(o=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=o;
       b.onclick=async()=>{
-        if(o===R.ans){const q=$('.car.q',card);q.classList.remove('q');q.textContent=o;say('Yes!');await sleep(800);r++;
+        if(busy)return;
+        if(o===R.ans){busy=true;const q=$('.car.q',card);q.classList.remove('q');q.textContent=o;say('Yes!');await sleep(800);busy=false;r++;
           if(r<rounds.length) draw();
-          else{$('.dots',card).innerHTML=rounds.map(()=>'<i class="on"></i>').join('');const st=misses===0?3:misses<3?2:1;
-            result(card,{ok:true,title:'All aboard! You did it!',msg:stars(st)+' '+award('A2',st),btn:'Play again',onBtn:()=>{r=0;misses=0;draw();}});}
-        } else {misses++;b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');say('Try again');}
+          else{dotsBar(card,rounds.length,r);const st=misses===0?3:misses<3?2:1;
+            result(card,{ok:true,final:true,title:'All aboard! You did it!',msg:stars(st)+' '+award('A2',st),btn:'Play again',onBtn:()=>{r=0;misses=0;draw();}});}
+        } else {misses++;shake(b);say('Try again');}
       };ch.appendChild(b);});
   }
   draw();
 })();
 
-/* ---------- A3 Seed Steps ---------- */
+/* A3 Seed Steps */
 (function(){
   const card=$('#A3');
-  const steps=['🕳️','🌰','💧','🌻'];  // dig, seed, water, flower
+  const steps=['🕳️','🌰','💧','🌻'];
   const names={'🕳️':'dig a hole','🌰':'plant the seed','💧':'water it','🌻':'flower grows'};
   const shuffled=['💧','🌻','🕳️','🌰'];
   let placed=[null,null,null,null], tries=0;
@@ -565,85 +1119,150 @@ function arrowPalette(host,onPick,big){
   function check(){
     tries++;
     const wrong=placed.map((p,i)=>p!==steps[i]);
-    if(!wrong.some(Boolean)){const st=tries===1?3:tries===2?2:1;result(card,{ok:true,title:'Your flower grew!',msg:stars(st)+' '+award('A3',st),btn:'Play again',onBtn:()=>{placed=[null,null,null,null];tries=0;draw();}});return;}
-    $$('.slot',card).forEach((s,i)=>{if(wrong[i]){s.classList.add('wrong','shake');}});
-    result(card,{ok:false,title:'Hmm, not quite',msg:'Tap the red boxes to take those cards back.',btn:'OK',onBtn:()=>{}});
+    if(!wrong.some(Boolean)){const st=byTries(tries);result(card,{ok:true,final:true,title:'Your flower grew!',msg:stars(st)+' '+award('A3',st),btn:'Play again',onBtn:()=>{placed=[null,null,null,null];tries=0;draw();}});return;}
+    $$('.slot',card).forEach((s,i)=>{if(wrong[i]){s.classList.add('wrong');shake(s);}});
+    result(card,{ok:false,title:'Hmm, not quite',msg:'Tap the red boxes to take those cards back.',btn:'OK'});
   }
   draw();
 })();
 
-/* ---------- B1 Loop Maze ---------- */
+/* A4 Hop Hop Hop */
 (function(){
-  const card=$('#B1'), tray=$('.prog',card);
-  const path=[[0,5],[1,5],[1,4],[2,4],[2,3],[3,3],[3,2],[4,2],[4,1],[5,1],[5,0]];
-  const ps=new Set(path.map(p=>p+''));
-  const walls=[];for(let y=0;y<6;y++)for(let x=0;x<6;x++)if(!ps.has(x+','+y))walls.push([x,y]);
-  const board=makeBoard($('.boardHost',card),{w:6,h:6,start:{x:0,y:5},goal:{x:5,y:0},walls,hero:'🐸',prize:'🪷',wallIcon:'🌿',fs:'clamp(16px,5.4vw,28px)',bw:'340px'});
-  const H=hearts($('.hearts',card));
-  let prog=[], target=null, busy=false; // target: null = main, else a loop object
-  const count=()=>prog.reduce((n,b)=>n+(b.t==='loop'?1+b.body.length:1),0);
-  function blockBtn(d,list,i){const b=document.createElement('button');b.type='button';b.className='blk';b.textContent=DIRS[d][2];
-    b.onclick=e=>{e.stopPropagation();if(busy)return;list.splice(i,1);draw();};return b;}
+  const card=$('#A4'), slots=$('.hop3',card);
+  const path=[[0,4],[1,4],[2,4],[3,4],[3,3],[3,2],[3,1],[3,0],[4,0]];
+  const board=makeBoard($('.boardHost',card),{w:5,h:5,start:{x:0,y:4},goal:{x:4,y:0},walls:pathWalls(5,5,path,'🌷'),hero:'🐰',prize:'🥕'});
+  let plan=[], tries=0, busy=false;
   function draw(){
-    tray.innerHTML=''; tray.classList.toggle('active',target===null);
-    prog.forEach((b,i)=>{
-      if(b.t==='move'){const el=blockBtn(b.d,prog,i);b.el=el;tray.appendChild(el);return;}
-      const L=document.createElement('div');L.className='loop';b.el=L;
-      L.innerHTML=`<div class="loophead">🔁 Repeat <button type="button" class="minus" aria-label="Fewer">−</button><span class="n">${b.n}</span><button type="button" class="plus" aria-label="More">+</button> times<button type="button" class="x" aria-label="Remove loop">✕</button></div>`;
-      const inner=document.createElement('div');inner.className='tray'+(target===b?' active':'');inner.dataset.empty='Tap here, then add arrows';
-      b.body.forEach((m,j)=>{const el=blockBtn(m.d,b.body,j);m.el=el;inner.appendChild(el);});
-      inner.onclick=e=>{e.stopPropagation();target=b;draw();};
-      $('.minus',L).onclick=e=>{e.stopPropagation();b.n=Math.max(2,b.n-1);draw();};
-      $('.plus',L).onclick=e=>{e.stopPropagation();b.n=Math.min(9,b.n+1);draw();};
-      $('.x',L).onclick=e=>{e.stopPropagation();prog.splice(i,1);if(target===b)target=null;draw();};
-      L.appendChild(inner);tray.appendChild(L);
-    });
-    const c=count();$('.counter',card).textContent=`Blocks used: ${c} · ⭐⭐⭐ needs 3 or fewer`;
+    slots.innerHTML='';
+    for(let i=0;i<3;i++){
+      const p=plan[i], d=document.createElement('div'); d.className='hslot'+(p?' full':'');
+      if(p){
+        d.innerHTML=`<button type="button" class="blk big" aria-label="Remove ${DNAME[p.d]}">${DIRS[p.d][2]}</button>
+          <div class="cnt"><button type="button" class="minus" aria-label="Fewer hops">−</button><b aria-label="${p.n} hops">${'●'.repeat(p.n)}</b><button type="button" class="plus" aria-label="More hops">+</button></div>`;
+        $('.blk',d).onclick=()=>{if(busy)return;plan.splice(i,1);hideResult(card);draw();};
+        $('.minus',d).onclick=()=>{if(busy)return;p.n=Math.max(1,p.n-1);hideResult(card);draw();};
+        $('.plus',d).onclick=()=>{if(busy)return;p.n=Math.min(4,p.n+1);hideResult(card);draw();};
+      }
+      slots.appendChild(d);
+    }
   }
-  tray.onclick=()=>{if(busy)return;target=null;draw();};
-  const pal=$('.palette',card);
-  arrowPalette(pal,d=>{if(busy||count()>=12)return;(target?target.body:prog).push({t:'move',d});hideResult(card);draw();});
-  const lb=document.createElement('button');lb.type='button';lb.className='blk loopbtn';lb.textContent='🔁 Repeat';
-  lb.onclick=()=>{if(busy||count()>=12)return;const L={t:'loop',n:2,body:[]};prog.push(L);target=L;hideResult(card);draw();};
-  pal.appendChild(lb);
-  $('.clear',card).onclick=()=>{if(busy)return;prog=[];target=null;draw();board.reset();hideResult(card);};
+  arrowPalette($('.palette',card),d=>{if(busy)return;if(plan.length>=3){shake(slots);return;}plan.push({d,n:1});hideResult(card);draw();},true);
+  $('.clear',card).onclick=()=>{if(busy)return;plan=[];draw();board.reset();hideResult(card);};
   $('.go',card).onclick=async()=>{
-    if(busy||!prog.length)return; busy=true; hideResult(card);
-    const steps=[];prog.forEach(b=>{if(b.t==='move')steps.push({d:b.d,el:b.el});else for(let k=0;k<b.n;k++)b.body.forEach(m=>steps.push({d:m.d,el:m.el,loop:b.el}));});
-    const all=$$('.blk,.loop',tray);
-    const r=await board.run(steps,i=>{all.forEach(e=>e.classList.remove('now'));if(i>=0){steps[i].el.classList.add('now');steps[i].loop?.classList.add('now');}});
+    if(busy||!plan.length)return; busy=true; tries++; hideResult(card);
+    const steps=[]; plan.forEach((p,i)=>{for(let k=0;k<p.n;k++)steps.push({op:p.d,slot:i});});
+    const els=$$('.hslot',slots);
+    const r=await board.run(steps,i=>els.forEach((e,j)=>e.classList.toggle('now',i>=0&&steps[i].slot===j)));
     busy=false;
-    if(r.ok){const c=count(),st=c<=3?3:c<=6?2:1;
-      result(card,{ok:true,title:'Splash! Made it',msg:`${stars(st)} with ${c} blocks. ${award('B1',st)}`,btn:'Play again',onBtn:()=>{prog=[];target=null;draw();board.reset();H.reset();}});}
-    else{ if(r.step!=null)steps[r.step].el.classList.add('bad');
-      const left=H.lose();
-      result(card,{ok:false,title:r.step!=null?'Splat into the reeds':'Not there yet',msg:left?'You lost a heart. Fix the program and run again.':'Out of hearts. In the full game this would end the lesson.',btn:left?'Try again':'Refill hearts',onBtn:()=>{board.reset();draw();if(!left)H.reset();}});}
+    if(r.ok){const st=byTries(tries);result(card,{ok:true,final:true,title:'Hop hop hooray!',msg:stars(st)+' '+award('A4',st),btn:'Play again',onBtn:()=>{plan=[];tries=0;draw();board.reset();}});}
+    else result(card,{ok:false,title:r.step!=null?'Oops, flowers!':'Not far enough',msg:'Change the arrows or the dots and try again.',btn:'Try again',onBtn:()=>{board.reset();draw();}});
   };
   draw();
 })();
 
-/* ---------- B2 Bug Hunt ---------- */
+/* A5 Weather Bear */
+(function(){
+  const card=$('#A5');
+  const WEATHER=[['☀️','sunny'],['🌧️','rainy'],['❄️','snowy']];
+  const ANSWER={'☀️':'🕶️','🌧️':'☂️','❄️':'🧣'};
+  const ITEMS=[['☂️','umbrella'],['🧣','scarf'],['🕶️','sunglasses']];
+  let rules={}, sel='☀️', busy=false, tries=0;
+  const rulesEl=$('.rules',card), itemsEl=$('.items',card), sky=$('.sky',card), wear=$('.wear',card);
+  function draw(bad=[]){
+    rulesEl.innerHTML='';
+    WEATHER.forEach(([w,name])=>{
+      const row=document.createElement('div'); row.className='rrow';
+      row.innerHTML=`<span aria-label="${name}">${w}</span><span class="kw">→</span><span>🐻</span><button type="button" class="rslot${sel===w?' sel':''}${bad.includes(w)?' wrong':''}" aria-label="What to wear when ${name}">${rules[w]||''}</button>`;
+      $('.rslot',row).onclick=()=>{if(busy)return;sel=w;hideResult(card);draw();};
+      rulesEl.appendChild(row);
+    });
+  }
+  ITEMS.forEach(([e,name])=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=e;b.setAttribute('aria-label',name);
+    b.onclick=()=>{if(busy||!sel)return;rules[sel]=e;say(name);hideResult(card);
+      const next=WEATHER.find(([w])=>!rules[w]);sel=next?next[0]:sel;draw();};
+    itemsEl.appendChild(b);});
+  $('.go',card).onclick=async()=>{
+    if(busy)return;
+    if(WEATHER.some(([w])=>!rules[w])){say('Fill every box first');shake(rulesEl);return;}
+    busy=true; tries++; hideResult(card);
+    const bad=[];
+    for(const w of ['🌧️','☀️','❄️']){
+      sky.textContent=w; wear.textContent=rules[w]; wear.classList.remove('pop'); void wear.offsetWidth; wear.classList.add('pop');
+      if(rules[w]!==ANSWER[w]) bad.push(w);
+      await sleep(1100);
+    }
+    busy=false; draw(bad);
+    if(!bad.length){const st=byTries(tries);result(card,{ok:true,final:true,title:'Snug bear!',msg:stars(st)+' '+award('A5',st),btn:'Play again',onBtn:()=>{rules={};sel='☀️';tries=0;sky.textContent='🌤️';wear.textContent='';draw();}});}
+    else result(card,{ok:false,title:'Silly bear!',msg:'Change the red box and try again.',btn:'Try again',onBtn:()=>{sel=bad[0];draw();}});
+  };
+  draw();
+})();
+
+/* A7 Where Will It Land? */
+(function(){
+  const card=$('#A7'), tray=$('.prog',card);
+  const rounds=[{p:['R','R','U'],end:[2,2]},{p:['U','U','U','R','R','D'],end:[2,1]},{p:['R','U','R','U','R'],end:[3,1]}];
+  let r=0, misses=0, busy=false, board;
+  function setup(){
+    dotsBar(card,rounds.length,r);
+    tray.innerHTML=rounds[r].p.map(d=>`<span class="blk" aria-label="${DNAME[d]}">${DIRS[d][2]}</span>`).join('');
+    board=makeBoard($('.boardHost',card),{w:4,h:4,start:{x:0,y:3},hero:'🐰'});
+    board.el.classList.add('pick');
+    board.cells.forEach((c,i)=>{const x=i%4,y=Math.floor(i/4);
+      c.setAttribute('role','button');c.tabIndex=0;c.setAttribute('aria-label',`Square ${x+1} across, ${y+1} down`);
+      c.onclick=()=>pick(x,y,c); c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(x,y,c);}};});
+  }
+  async function pick(x,y,c){
+    if(busy)return; busy=true; hideResult(card);
+    board.cells.forEach(e=>e.classList.remove('picked','right')); c.classList.add('picked');
+    const R=rounds[r], els=$$('.blk',tray);
+    await board.run(R.p.map(op=>({op})),i=>els.forEach((e,j)=>e.classList.toggle('now',j===i)));
+    const [ex,ey]=R.end; board.cells[ey*4+ex].classList.add('right');
+    if(x===ex&&y===ey){
+      say('Yes!'); await sleep(900); busy=false; r++;
+      if(r<rounds.length) setup();
+      else{dotsBar(card,rounds.length,r);const st=misses===0?3:misses<3?2:1;
+        result(card,{ok:true,final:true,title:'You can read code!',msg:stars(st)+' '+award('A7',st),btn:'Play again',onBtn:()=>{r=0;misses=0;setup();}});}
+    } else {
+      busy=false; misses++;
+      result(card,{ok:false,title:'It stopped on the green square',msg:'Follow the arrows one at a time with your finger.',btn:'Try again',onBtn:()=>{board.reset();board.cells.forEach(e=>e.classList.remove('picked','right'));}});
+    }
+  }
+  setup();
+})();
+
+/* ================= AGES 7–9 ================= */
+
+/* B1 Loop Maze */
+(function(){
+  const card=$('#B1');
+  const path=[[0,5],[1,5],[1,4],[2,4],[2,3],[3,3],[3,2],[4,2],[4,1],[5,1],[5,0]];
+  const board=makeBoard($('.boardHost',card),{w:6,h:6,start:{x:0,y:5},goal:{x:5,y:0},walls:pathWalls(6,6,path,'🌿'),hero:'🐸',prize:'🪷',bw:'340px'});
+  const ed=makeEditor(card,{ops:ARROW_OPS,loop:true,max:14,goal:'⭐⭐⭐ needs 3 or fewer'});
+  wireEditorGame(card,ed,{run:board.run,reset:board.reset,H:hearts($('.hearts',card)),id:'B1',
+    starsFor:c=>c<=3?3:c<=6?2:1,winTitle:'Splash! Made it',bumpTitle:'Splat into the reeds',missTitle:'Not there yet'});
+})();
+
+/* B2 Bug Hunt */
 (function(){
   const card=$('#B2'), tray=$('.prog',card);
   const path=[[0,0],[1,0],[2,0],[2,1],[2,2],[3,2],[3,3],[4,3],[4,4]];
-  const ps=new Set(path.map(p=>p+''));
-  const walls=[];for(let y=0;y<5;y++)for(let x=0;x<5;x++)if(!ps.has(x+','+y))walls.push([x,y]);
-  const board=makeBoard($('.boardHost',card),{w:5,h:5,start:{x:0,y:0},goal:{x:4,y:4},walls,hero:'🤖',prize:'🔋',wallIcon:'🧱',fs:'clamp(18px,6.4vw,32px)'});
+  const board=makeBoard($('.boardHost',card),{w:5,h:5,start:{x:0,y:0},goal:{x:4,y:4},walls:pathWalls(5,5,path,'🧱'),hero:'🤖',prize:'🔋'});
   const H=hearts($('.hearts',card));
   const BUGGY=['R','R','D','D','D','D','R','D'];
   let prog=[...BUGGY], busy=false, edits=0, fails=0;
   function draw(){
     tray.innerHTML='';
-    prog.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.className='blk';b.textContent=DIRS[d][2];b.setAttribute('aria-label','Block '+(i+1)+', tap to turn');
+    prog.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.className='blk';b.textContent=DIRS[d][2];b.setAttribute('aria-label','Block '+(i+1)+', '+DNAME[d]+', tap to turn');
       b.onclick=()=>{if(busy)return;prog[i]=ORDER[(ORDER.indexOf(d)+1)%4];edits++;hideResult(card);board.reset();draw();};tray.appendChild(b);});
   }
   $('.go',card).onclick=async()=>{
     if(busy)return; busy=true; hideResult(card);
     const els=$$('.blk',tray);
-    const r=await board.run(prog.map(d=>({d})),i=>els.forEach((e,j)=>e.classList.toggle('now',j===i)));
+    const r=await board.run(prog.map(op=>({op})),i=>els.forEach((e,j)=>e.classList.toggle('now',j===i)));
     busy=false;
     if(r.ok){const st=fails===0?3:fails===1?2:1;
-      result(card,{ok:true,title:'Bug squashed!',msg:`${stars(st)} ${award('B2',st)}`,btn:'Play again',onBtn:()=>{prog=[...BUGGY];edits=0;fails=0;draw();board.reset();H.reset();}});}
+      result(card,{ok:true,final:true,title:'Bug squashed!',msg:`${stars(st)} ${award('B2',st)}`,btn:'Play again',onBtn:()=>{prog=[...BUGGY];edits=0;fails=0;draw();board.reset();H.reset();}});}
     else{ if(r.step!=null)els[r.step]?.classList.add('bad');
       if(edits===0){result(card,{ok:false,title:'There it is',msg:'The red block is where the robot crashed. The bug is at or before it.',btn:'Find the bug',onBtn:()=>{board.reset();draw();}});return;}
       fails++; const left=H.lose();
@@ -652,7 +1271,112 @@ function arrowPalette(host,onPick,big){
   draw();
 })();
 
-/* ---------- B3 Sorting Machine ---------- */
+/* B4 Tower Counter */
+(function(){
+  const card=$('#B4'), towers=$('.towers',card), countEl=$('.countbox b',card);
+  const levels=[[1,2,3,4,5],[2,4,6,8],[5,4,3,2,1]];
+  const JUMPS=[1,2,3,-1,-2];
+  const ctl={start:1,stop:3,jump:1};
+  let L=0, busy=false, fails=0;
+  $$('.stepper',card).forEach(sp=>{const k=sp.dataset.k;
+    $('.minus',sp).onclick=()=>{if(busy)return;ctl[k]=Math.max(1,ctl[k]-1);drawCtl();};
+    $('.plus',sp).onclick=()=>{if(busy)return;ctl[k]=Math.min(9,ctl[k]+1);drawCtl();};});
+  const jumpsEl=$('.jumps',card);
+  JUMPS.forEach(j=>{const b=document.createElement('button');b.type='button';b.className='chip';b.dataset.j=j;b.textContent=(j>0?'+':'−')+Math.abs(j);b.onclick=()=>{if(busy)return;ctl.jump=j;drawCtl();};jumpsEl.appendChild(b);});
+  function drawCtl(){
+    $$('.stepper',card).forEach(sp=>$('b',sp).textContent=ctl[sp.dataset.k]);
+    $$('.chip',jumpsEl).forEach(b=>b.setAttribute('aria-pressed',+b.dataset.j===ctl.jump));
+    hideResult(card);
+  }
+  function drawTowers(n){
+    const T=levels[L]; n=Math.max(n,T.length);
+    towers.innerHTML=Array.from({length:n},(_,i)=>`<div class="tw">${T[i]?`<div class="ghost" style="height:${T[i]*14}px"></div>`:''}<div class="solid"></div></div>`).join('');
+  }
+  function setup(){dotsBar(card,levels.length,L);drawTowers(0);countEl.textContent='–';drawCtl();}
+  $('.go',card).onclick=async()=>{
+    if(busy)return; busy=true; hideResult(card);
+    const seq=[];
+    for(let c=ctl.start; ctl.jump>0?c<=ctl.stop:c>=ctl.stop; c+=ctl.jump){seq.push(c);if(seq.length>=10)break;}
+    const T=levels[L];
+    drawTowers(seq.length);
+    const solids=$$('.solid',towers);
+    for(let i=0;i<seq.length;i++){
+      countEl.textContent=seq[i];
+      solids[i].style.height=seq[i]*14+'px';
+      if(seq[i]!==T[i]) solids[i].classList.add('bad');
+      await sleep(500);
+    }
+    busy=false;
+    const ok=seq.length===T.length&&seq.every((v,i)=>v===T[i]);
+    if(ok){
+      if(L<levels.length-1) result(card,{ok:true,title:'Perfect skyline!',msg:'Next skyline is different. Look closely.',btn:'Next skyline',onBtn:()=>{L++;setup();}});
+      else{const st=fails===0?3:fails<=2?2:1;result(card,{ok:true,final:true,title:'Counting champion!',msg:`${stars(st)} ${award('B4',st)}`,btn:'Play again',onBtn:()=>{L=0;fails=0;setup();}});}
+    } else {
+      fails++;
+      result(card,{ok:false,title:seq.length?'Not the same skyline':'Nothing was built',
+        msg:seq.length?'Compare your towers with the outlines. Check start, stop and jump.':'The machine never reached the stop number. Which way should it jump?',btn:'Try again'});
+    }
+  };
+  setup();
+})();
+
+/* B8 Make-a-Block */
+(function(){
+  const card=$('#B8');
+  const board=makeBoard($('.boardHost',card),{w:9,h:2,start:{x:0,y:1},goal:{x:8,y:1},walls:[[1,1],[4,1],[7,1]],wallIcon:'🪨',hero:'🦘',prize:'🏁',bw:'420px'});
+  const ed=makeEditor(card,{ops:ARROW_OPS,func:true,max:16,goal:'⭐⭐⭐ needs 9 or fewer'});
+  wireEditorGame(card,ed,{run:board.run,reset:board.reset,H:hearts($('.hearts',card)),id:'B8',
+    starsFor:c=>c<=9?3:c<=12?2:1,winTitle:'Boing! Finish line!',bumpTitle:'Ouch, a rock',missTitle:'Not at the flag yet'});
+})();
+
+/* B10 Draw Bot */
+(function(){
+  const card=$('#B10'), host=$('.paper',card);
+  const N=5, G=40, PAD=20, VEC=[[0,-1],[1,0],[0,1],[-1,0]];
+  const shapes=[
+    {name:'square',start:[1,3],dir:0,sol:'FFRFFRFFRFFR',best:4},
+    {name:'staircase',start:[0,4],dir:0,sol:'FRFLFRFLFRFL',best:5}
+  ];
+  let si=0, T, pos, dir, deg;
+  const px=v=>PAD+v*G;
+  const key=(a,b)=>[a,b].map(p=>p.join(',')).sort().join('|');
+  function trace(sol,start,d0){const segs=new Set();let p=[...start],d=d0;for(const op of sol){if(op==='F'){const n=[p[0]+VEC[d][0],p[1]+VEC[d][1]];segs.add(key(p,n));p=n;}else d=(d+(op==='R'?1:3))%4;}return segs;}
+  host.innerHTML=`<svg viewBox="0 0 ${2*PAD+(N-1)*G} ${2*PAD+(N-1)*G}" role="img" aria-label="Drawing paper"><g class="dotg"></g><g class="tgt"></g><g class="ink"></g><g class="turtle"><polygon points="0,-13 10,10 0,5 -10,10"/></g></svg>`;
+  const svg=$('svg',host), tgt=$('.tgt',svg), ink=$('.ink',svg), tur=$('.turtle',svg);
+  let dotsHtml='';for(let y=0;y<N;y++)for(let x=0;x<N;x++)dotsHtml+=`<circle cx="${px(x)}" cy="${px(y)}" r="4"/>`;
+  $('.dotg',svg).innerHTML=dotsHtml;
+  const line=(a,b)=>`<line x1="${px(a[0])}" y1="${px(a[1])}" x2="${px(b[0])}" y2="${px(b[1])}"/>`;
+  const placeT=()=>{tur.style.transform=`translate(${px(pos[0])}px,${px(pos[1])}px) rotate(${deg}deg)`;};
+  function reset(){pos=[...T.start];dir=T.dir;deg=dir*90;ink.innerHTML='';placeT();}
+  function setup(){
+    T=shapes[si]; T.segs=trace(T.sol,T.start,T.dir);
+    tgt.innerHTML=[...T.segs].map(k=>{const [a,b]=k.split('|').map(s=>s.split(',').map(Number));return line(a,b);}).join('');
+    dotsBar(card,shapes.length,si); reset();
+  }
+  async function run(steps,onStep){
+    reset(); await sleep(200);
+    const drawn=new Set();
+    for(let i=0;i<steps.length;i++){
+      onStep(i); const op=steps[i].op;
+      if(op==='F'){
+        const n=[pos[0]+VEC[dir][0],pos[1]+VEC[dir][1]];
+        if(n[0]<0||n[1]<0||n[0]>=N||n[1]>=N){await sleep(300);return {ok:false,step:i};}
+        ink.insertAdjacentHTML('beforeend',line(pos,n)); drawn.add(key(pos,n)); pos=n;
+      } else { const t=op==='R'?1:-1; dir=(dir+t+4)%4; deg+=t*90; }
+      placeT(); await sleep(STEP);
+    }
+    onStep(-1);
+    const same=drawn.size===T.segs.size&&[...drawn].every(k=>T.segs.has(k));
+    return same?{ok:true}:{ok:false,step:null};
+  }
+  setup();
+  const ed=makeEditor(card,{ops:[{id:'F',glyph:'⬆',label:'forward'},{id:'R',glyph:'↻',label:'turn right'},{id:'L',glyph:'↺',label:'turn left'}],loop:true,max:16});
+  wireEditorGame(card,ed,{run,reset,H:hearts($('.hearts',card)),id:'B10',
+    starsFor:c=>c<=T.best?3:c<=T.best*2?2:1,winTitle:'Masterpiece!',bumpTitle:'Off the paper!',missTitle:'Not the same shape',
+    levels:{hasNext:()=>si<shapes.length-1,next:()=>{si++;setup();},restart:()=>{si=0;setup();}}});
+})();
+
+/* B3 Sorting Machine */
 (function(){
   const card=$('#B3');
   const COL={red:'#FF6150',blue:'#3D8BFF',yellow:'#FFC23C'};
@@ -684,12 +1408,192 @@ function arrowPalette(host,onPick,big){
     }
     busy=false;
     if(!wrong){
-      if(g<goals.length-1){result(card,{ok:true,title:'Sorted!',msg:'Ready for the next puzzle?',btn:'Next puzzle',onBtn:()=>{g++;pick=null;draw();}});}
-      else{const st=tries<=2?3:tries<=4?2:1;result(card,{ok:true,title:'Machine master!',msg:`${stars(st)} ${award('B3',st)}`,btn:'Play again',onBtn:()=>{g=0;pick=null;tries=0;draw();}});}
-    } else result(card,{ok:false,title:`${wrong} in the wrong basket`,msg:'The red-ringed shapes went the wrong way. Try a different condition.',btn:'Try again',onBtn:()=>{draw();}});
+      if(g<goals.length-1) result(card,{ok:true,title:'Sorted!',msg:'Ready for the next puzzle?',btn:'Next puzzle',onBtn:()=>{g++;pick=null;draw();}});
+      else{const st=tries<=2?3:tries<=4?2:1;result(card,{ok:true,final:true,title:'Machine master!',msg:`${stars(st)} ${award('B3',st)}`,btn:'Play again',onBtn:()=>{g=0;pick=null;tries=0;draw();}});}
+    } else result(card,{ok:false,title:`${wrong} in the wrong basket`,msg:'The red-ringed shapes went the wrong way. Try a different condition.',btn:'Try again',onBtn:()=>draw()});
   };
   draw();
 })();
 
-refresh();
+/* B5 Odd or Even Gate */
+(function(){
+  const card=$('#B5');
+  const NUMS=[14,27,130,9,58,203,66,1001,52,35];
+  const chosen=new Set();
+  let busy=false, tries=0;
+  const digitsEl=$('.digits',card), pairs=$('.pairs',card);
+  for(let d=0;d<10;d++){const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=d;b.setAttribute('aria-pressed','false');
+    b.onclick=()=>{if(busy)return;chosen.has(d)?chosen.delete(d):chosen.add(d);b.setAttribute('aria-pressed',chosen.has(d));showPairs(d);hideResult(card);draw();};
+    digitsEl.appendChild(b);}
+  function showPairs(d){
+    if(d===0){pairs.textContent='0 = no dots at all, so nothing is left over.';return;}
+    const prs='●●'.repeat(Math.floor(d/2)).replace(/(●●)/g,'$1 ');
+    pairs.innerHTML=`${d} = <i>${prs}</i>${d%2?'<i class="left">●</i> → one left over':'→ none left over'}`;
+  }
+  function draw(){
+    $('.belt',card).innerHTML=NUMS.map(n=>`<span class="num">${n}</span>`).join('');
+    $('.in.L',card).innerHTML='';$('.in.R',card).innerHTML='';
+  }
+  $('.go',card).onclick=async()=>{
+    if(busy)return; busy=true; tries++; hideResult(card); draw();
+    const els=$$('.num',$('.belt',card)); let wrong=0;
+    for(let i=0;i<NUMS.length;i++){
+      const n=NUMS[i], left=chosen.has(n%10);
+      $(left?'.in.L':'.in.R',card).appendChild(els[i]);
+      if(left!==(n%2===0)){els[i].classList.add('wrong');wrong++;}
+      await sleep(300);
+    }
+    busy=false;
+    if(!wrong){const st=byTries(tries);result(card,{ok:true,final:true,title:'Gate works!',msg:`${stars(st)} ${award('B5',st)}`,btn:'Play again',onBtn:()=>{chosen.clear();tries=0;$$('.chip',digitsEl).forEach(b=>b.setAttribute('aria-pressed','false'));pairs.textContent='';draw();}});}
+    else result(card,{ok:false,title:`${wrong} went through the wrong door`,msg:'Look at the last digit of each red-ringed number. Tap digits to check for pairs.',btn:'Try again',onBtn:()=>draw()});
+  };
+  draw();
+})();
+
+/* B9 Magic Jar */
+(function(){
+  const card=$('#B9'), panel=$('.codepanel',card), jarV=$('.jar b',card), ch=$('.choices',card);
+  const rounds=[
+    {lines:[{t:'set jar to 3',f:()=>3},{t:'change jar by +2',f:j=>j+2},{t:'change jar by +2',f:j=>j+2}],opts:[5,7,9]},
+    {lines:[{t:'set jar to 1',f:()=>1},{t:'repeat 3 times:',rep:3,body:[{t:'change jar by +4',f:j=>j+4}]}],opts:[5,13,12]},
+    {lines:[{t:'set jar to 10',f:()=>10},{t:'change jar by −3',f:j=>j-3},{t:'double the jar',f:j=>j*2}],opts:[20,14,7]}
+  ];
+  let r=0, misses=0, busy=false;
+  function trace(lines){const out=[];let j=0;const ex=L=>L.forEach(l=>{if(l.rep){out.push({el:l.el,j});for(let k=0;k<l.rep;k++)ex(l.body);}else{j=l.f(j);out.push({el:l.el,j});}});ex(lines);return out;}
+  function setup(){
+    const R=rounds[r]; dotsBar(card,rounds.length,r); jarV.textContent='?'; panel.innerHTML='';
+    const add=(l,ind)=>{const d=document.createElement('div');d.textContent=l.t;if(ind)d.className='in1';l.el=d;panel.appendChild(d);(l.body||[]).forEach(b=>add(b,1));};
+    R.lines.forEach(l=>add(l,0));
+    ch.innerHTML='';
+    R.opts.forEach(o=>{const b=document.createElement('button');b.type='button';b.className='choice numc';b.textContent=o;b.onclick=()=>guess(o,b);ch.appendChild(b);});
+  }
+  async function guess(o,btn){
+    if(busy)return; busy=true; hideResult(card); $$('button',ch).forEach(b=>b.disabled=true);
+    const steps=trace(rounds[r].lines);
+    for(const s of steps){$$('.now',panel).forEach(e=>e.classList.remove('now'));s.el.classList.add('now');jarV.textContent=s.j;jarV.classList.remove('pop');void jarV.offsetWidth;jarV.classList.add('pop');await sleep(650);}
+    $$('.now',panel).forEach(e=>e.classList.remove('now'));
+    const ans=steps[steps.length-1].j; busy=false;
+    if(o===ans){
+      r++;
+      if(r<rounds.length) result(card,{ok:true,title:`Yes, ${ans}!`,msg:'Next program.',btn:'Next',onBtn:setup});
+      else{dotsBar(card,rounds.length,r);const st=misses===0?3:misses<3?2:1;result(card,{ok:true,final:true,title:'Jar genius!',msg:`${stars(st)} ${award('B9',st)}`,btn:'Play again',onBtn:()=>{r=0;misses=0;setup();}});}
+    } else {
+      misses++; shake(btn);
+      result(card,{ok:false,title:`The jar ended at ${ans}`,msg:'Run it again in your head, one line at a time.',btn:'Try again',onBtn:setup});
+    }
+  }
+  setup();
+})();
+
+/* B6 Block Adder */
+(function(){
+  const card=$('#B6'), mat=$('.mat',card), ch=$('.choices',card), algo=$$('.algo li',card);
+  const problems=[[23,45],[27,35],[48,36]];
+  const H=hearts($('.hearts',card));
+  let P=0, st, fails=0;
+  function setup(){
+    const [a,b]=problems[P];
+    st={a,b,aT:Math.floor(a/10),aO:a%10,bT:Math.floor(b/10),bO:b%10,rT:0,rO:0,ones:false,tens:false,traded:false,busy:false};
+    dotsBar(card,problems.length,P); ch.hidden=true; draw();
+  }
+  const col=(n,kind)=>`<div class="col${kind==='o'&&n>=10?' over':''}"><small>${n}</small>${(kind==='t'?'<i class="rod"></i>':'<i class="cube"></i>').repeat(n)}</div>`;
+  function draw(){
+    mat.innerHTML=`<span></span><span class="h">Tens</span><span class="h">Ones</span>
+      <span class="sign"></span>${col(st.aT,'t')}${col(st.aO,'o')}
+      <span class="sign">+</span>${col(st.bT,'t')}${col(st.bO,'o')}
+      <span class="line"></span>
+      <span class="sign">=</span>${col(st.rT,'t')}${col(st.rO,'o')}`;
+    algo[0].classList.toggle('done',st.ones);
+    algo[1].classList.toggle('done',st.ones&&st.rO<10&&(st.traded||st.aO+st.bO<10));
+    algo[2].classList.toggle('done',st.tens);
+    algo[3].classList.remove('done');
+  }
+  function oops(msg){
+    const left=H.lose(); fails++;
+    result(card,{ok:false,title:'Not that step',msg:left?msg:'Out of hearts. In the full game this ends the lesson.',btn:left?'OK':'Refill hearts',onBtn:()=>{if(!left){H.reset();setup();}}});
+  }
+  $$('[data-act]',card).forEach(b=>b.onclick=()=>{
+    if(st.busy)return; hideResult(card);
+    const a=b.dataset.act;
+    if(a==='ones'){if(st.ones)return oops('The ones are already together.');st.rO=st.aO+st.bO;st.aO=st.bO=0;st.ones=true;}
+    else if(a==='trade'){
+      if(!st.ones) return oops('Push the ones together first, then see if there are 10 or more.');
+      if(st.rO<10) return oops(`There are only ${st.rO} ones. You need 10 to trade.`);
+      st.rO-=10; st.rT+=1; st.traded=true;
+    }
+    else if(a==='tens'){
+      if(!st.ones) return oops('Start with the ones column, on the right.');
+      if(st.tens) return oops('The tens are already together.');
+      st.rT+=st.aT+st.bT; st.aT=st.bT=0; st.tens=true;
+    }
+    else if(a==='read'){
+      if(!st.ones||!st.tens) return oops('Push all the blocks down first.');
+      if(st.rO>=10) return oops(`The ones column has ${st.rO}. A column holds at most 9, so trade first.`);
+      algo[3].classList.add('done');
+      const ans=st.a+st.b, carry=(st.a%10)+(st.b%10)>=10;
+      const wrongs=carry?[ans-10,Number(`${Math.floor(st.a/10)+Math.floor(st.b/10)}${(st.a%10)+(st.b%10)}`)]:[ans-10,ans+10];
+      const opts=[ans,...wrongs]; for(let i=0;i<P;i++) opts.push(opts.shift());
+      ch.innerHTML=''; ch.hidden=false;
+      opts.forEach(o=>{const c=document.createElement('button');c.type='button';c.className='choice numc';c.textContent=o;
+        c.onclick=()=>{
+          if(o!==ans){shake(c);return oops('Count the tens rods and the ones cubes in the answer row.');}
+          ch.hidden=true;
+          if(P<problems.length-1) result(card,{ok:true,title:`${st.a} + ${st.b} = ${ans}`,msg:'Next sum.',btn:'Next',onBtn:()=>{P++;setup();}});
+          else{const s=fails===0?3:fails<=2?2:1;result(card,{ok:true,final:true,title:'Adding machine!',msg:`${stars(s)} ${award('B6',s)}`,btn:'Play again',onBtn:()=>{P=0;fails=0;H.reset();setup();}});}
+        };ch.appendChild(c);});
+    }
+    draw();
+  });
+  setup();
+})();
+
+/* B7 Mirror Numbers */
+(function(){
+  const card=$('#B7'), stage=$('.mstage',card);
+  const isPal=n=>{const s=String(n);return s===[...s].reverse().join('');};
+  const flip=n=>Number([...String(n)].reverse().join(''));
+  const TILES=[121,123,44,1221,908,7,3443,56];
+  const STARTS=[57,68];
+  let round=0, misses=0;
+  function roundOne(){
+    dotsBar(card,2,0);
+    const picked=new Set();
+    stage.innerHTML=`<p class="q">Tap every mirror number, then press Check.</p><div class="tiles"></div><div class="actions"><button type="button" class="btn go">✔ Check</button></div>`;
+    const tiles=$('.tiles',stage);
+    TILES.forEach(n=>{const b=document.createElement('button');b.type='button';b.className='num';b.textContent=n;b.setAttribute('aria-pressed','false');
+      b.onclick=()=>{picked.has(n)?picked.delete(n):picked.add(n);b.setAttribute('aria-pressed',picked.has(n));b.classList.remove('wrong');hideResult(card);};tiles.appendChild(b);});
+    $('.go',stage).onclick=()=>{
+      const btns=$$('.num',tiles); let wrong=0;
+      TILES.forEach((n,i)=>{const bad=picked.has(n)!==isPal(n);btns[i].classList.toggle('wrong',bad);if(bad)wrong++;});
+      if(!wrong){round=1;result(card,{ok:true,title:'Found them all!',msg:'Now the flip-and-add machine.',btn:'Next',onBtn:roundTwo});}
+      else{misses++;result(card,{ok:false,title:`${wrong} to fix`,msg:'Red rings are wrong. Read each number from both ends.',btn:'OK'});}
+    };
+  }
+  function roundTwo(){
+    dotsBar(card,2,1);
+    let si=0, n=STARTS[0];
+    stage.innerHTML=`<div class="codepanel"><div>repeat until it is a mirror number:</div><div class="in1">flip the digits and add</div></div>
+      <div class="bignum"></div><div class="log"></div>
+      <div class="actions"><button type="button" class="btn alt flipb">🔄 Flip &amp; add</button><button type="button" class="btn stopb">🪞 It's a mirror number!</button></div>`;
+    const big=$('.bignum',stage), log=$('.log',stage);
+    const show=()=>{big.textContent=n;big.classList.remove('pop');void big.offsetWidth;big.classList.add('pop');};
+    show();
+    $('.flipb',stage).onclick=()=>{
+      hideResult(card);
+      if(isPal(n)){misses++;result(card,{ok:false,title:'Look again',msg:`${n} reads the same both ways. Time to stop.`,btn:'OK'});return;}
+      const f=flip(n), s=n+f; log.insertAdjacentHTML('beforeend',`<div>${n} + ${f} = ${s}</div>`); n=s; show();
+    };
+    $('.stopb',stage).onclick=()=>{
+      hideResult(card);
+      if(!isPal(n)){misses++;result(card,{ok:false,title:'Not yet',msg:`${n} backwards is ${flip(n)}. Keep going.`,btn:'OK'});return;}
+      si++;
+      if(si<STARTS.length){result(card,{ok:true,title:`${n} is a mirror number!`,msg:`Now try ${STARTS[si]}.`,btn:'Next',onBtn:()=>{n=STARTS[si];log.innerHTML='';show();}});}
+      else{const st=misses===0?3:misses<3?2:1;result(card,{ok:true,final:true,title:'Mirror master!',msg:`${stars(st)} ${award('B7',st)}`,btn:'Play again',onBtn:()=>{misses=0;roundOne();}});}
+    };
+  }
+  roundOne();
+})();
+
+refresh(); renderTimer();
+if(S.time.locked) openLock();
 </script>
