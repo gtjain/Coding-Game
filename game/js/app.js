@@ -10,22 +10,51 @@
   const VOICES = [['af_heart', 'Heart (in use)'], ['af_bella', 'Bella'], ['bf_emma', 'Emma, British'], ['am_puck', 'Puck']];
   const KEY_AFTER = 2;   // offer the solution key after this many wrong tries
 
-  /* ---------- storage ---------- */
+  /* ---------- storage ----------
+     Everything lives in this browser's localStorage. Rules that keep progress safe when games are added:
+     1. KEY never changes. Progress is stored by game id, so new games simply start empty.
+     2. load() upgrades whatever it finds (migrate) and never drops fields it does not know about.
+     3. Every save also writes a backup copy; if the main copy is unreadable the backup is used. */
   const KEY = 'code-hoppers-v3';
+  const BACKUP_KEY = KEY + '-backup';
+  const SCHEMA = 4;
+  const LEGACY_IDS = ['A1', 'A9', 'A6', 'A2', 'A3', 'A4', 'A5', 'A7', 'A8', 'B1', 'B12', 'B2', 'B4', 'B8', 'B10', 'B3', 'B5', 'B9', 'B6', 'B7', 'B11'];   // the games before "new game" tracking
   const freshTime = () => ({ left: limitSecs(), locked: false, overtime: false, graceEnd: null });
   let S;
   function limitSecs() { return S.settings.demo ? 30 : S.settings.limitMin * 60; }
-  function load() {
-    let s = null;
-    try { s = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
-    if (!s || !Array.isArray(s.profiles)) s = { current: 'Pip', profiles: [
-      { name: 'Pip', avatar: '🐰', age: 'young', xp: 25, streak: 3, last: null, combo: 1, done: { A1: 3 } },
-      { name: 'Juno', avatar: '🦊', age: 'older', xp: 45, streak: 5, last: null, combo: 0, done: { B1: 2, B2: 3 } }] };
+  const readStore = k => { try { const s = JSON.parse(localStorage.getItem(k)); return s && Array.isArray(s.profiles) ? s : null; } catch (e) { return null; } };
+  let storageOk = true;
+  try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); } catch (e) { storageOk = false; }
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}   // ask the browser not to evict our data
+  // bring any saved state up to date with this version of the app
+  function migrate(s, existed) {
+    s.v = SCHEMA;
     s.settings = Object.assign({ limitMin: 15, demo: false, pin: null, sfx: true }, s.settings || {});
+    s.profiles = s.profiles.filter(p => p && typeof p === 'object');
+    s.profiles.forEach(p => {
+      p.name = String(p.name || 'Player').slice(0, 12); p.avatar = p.avatar || '🐰'; p.age = p.age === 'older' ? 'older' : 'young';
+      p.xp = +p.xp || 0; p.streak = +p.streak || 0; p.combo = +p.combo || 0;
+      p.done = p.done && typeof p.done === 'object' ? p.done : {};
+      p.seen = p.seen && typeof p.seen === 'object' ? p.seen : {};
+    });
+    if (!s.current || !s.profiles.some(p => p.name === s.current)) s.current = s.profiles[0] ? s.profiles[0].name : null;
+    const ids = GAMES.map(g => g.id);
+    const known = Array.isArray(s.known) ? s.known : (existed ? LEGACY_IDS : ids);
+    s.fresh = Array.isArray(s.fresh) ? s.fresh : [];
+    ids.forEach(id => { if (!known.includes(id) && !s.fresh.includes(id)) s.fresh.push(id); });
+    s.known = [...new Set([...known, ...ids])];
     return s;
   }
+  function load() {
+    let s = readStore(KEY) || readStore(BACKUP_KEY);
+    const existed = !!s;
+    if (!s) s = { current: 'Pip', profiles: [
+      { name: 'Pip', avatar: '🐰', age: 'young', xp: 25, streak: 3, last: null, combo: 1, done: { A1: 3 } },
+      { name: 'Juno', avatar: '🦊', age: 'older', xp: 45, streak: 5, last: null, combo: 0, done: { B1: 2, B2: 3 } }] };
+    return migrate(s, existed);
+  }
   S = load();
-  S.profiles.forEach(p => { p.time = p.time || freshTime(); p.combo = p.combo || 0; });
+  S.profiles.forEach(p => { p.time = p.time || freshTime(); });
   CH.sfx.enabled = S.settings.sfx;
   // squishy pop on every tap; a rising run when a program starts
   document.addEventListener('click', e => {
@@ -35,7 +64,11 @@
     const up = b.matches('.plus, [data-k], .next'), down = b.matches('.minus, .prev, [data-k="del"]');
     CH.sfx.pop(up ? 1.25 : down ? .8 : 1);
   }, true);
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+  function save() {
+    S.savedAt = Date.now();
+    try { const j = JSON.stringify(S); localStorage.setItem(KEY, j); localStorage.setItem(BACKUP_KEY, j); } catch (e) { storageOk = false; }
+  }
+  save();   // writes the upgraded copy straight away
   const cur = () => S.profiles.find(p => p.name === S.current) || null;
 
   /* ---------- header ---------- */
@@ -137,6 +170,10 @@
       <div class="row"><h4>Voice</h4><div class="opts">${VOICES.map(([v, n]) => `<button type="button" data-v="${v}">▶ ${n}</button>`).join('')}</div>
       <p class="fine">Neutral English voices from Kokoro, a free open-source model. This is a stand-in until the ElevenLabs voice is recorded. Pick a sample you like and every line gets re-recorded in it.</p></div>
       <div class="row"><h4>Sound effects</h4><div class="opts" id="sfxOpts"><button type="button" data-s="1" aria-pressed="${st.sfx}">On</button><button type="button" data-s="0" aria-pressed="${!st.sfx}">Off</button></div></div>
+      <div class="row"><h4>Backup of progress</h4>
+      <p class="fine">Progress is kept on this phone's browser. It stays when the game gets new levels. It is lost if you clear the browser's site data. Copy a backup now and then, and paste it back to restore. The grown-up PIN is not included.</p>
+      <div class="actions"><button type="button" class="btn alt small" id="bkCopy">Copy backup</button><button type="button" class="btn ghost small" id="bkShow">Restore from backup</button></div>
+      <div id="bkBox" hidden><textarea id="bkText" class="field" rows="4" aria-label="Backup text" placeholder="Paste a backup here"></textarea><p class="err" id="bkErr"></p><button type="button" class="btn warn small" id="bkGo">Restore (replaces progress on this phone)</button></div></div>
       <div class="actions"><button type="button" class="btn ghost small" id="sPin">Change PIN</button><button type="button" class="btn" id="sDone">Done</button></div></div>`, true);
     $$('#limOpts button', sheet).forEach(b => b.onclick = () => {
       if (b.dataset.m === 'demo') st.demo = true; else { st.demo = false; st.limitMin = +b.dataset.m; }
@@ -155,6 +192,22 @@
     };
     $$('[data-v]', sheet).forEach(b => b.onclick = () => { CH.stopVoice(); try { new Audio((window.CH_SAMPLES || {})[b.dataset.v] || `audio/samples/${b.dataset.v}.mp3`).play().catch(() => {}); } catch (e) {} });
     $$('#sfxOpts button', sheet).forEach(b => b.onclick = () => { st.sfx = b.dataset.s === '1'; CH.sfx.enabled = st.sfx; save(); $$('#sfxOpts button', sheet).forEach(x => x.setAttribute('aria-pressed', x === b)); });
+    $('#bkCopy', sheet).onclick = async () => {
+      const text = JSON.stringify({ ...S, settings: { ...S.settings, pin: null } });
+      try { await navigator.clipboard.writeText(text); $('#bkCopy', sheet).textContent = 'Copied ✓'; }
+      catch (e) { $('#bkBox', sheet).hidden = false; const t = $('#bkText', sheet); t.value = text; t.select(); $('#bkErr', sheet).textContent = 'Copy this text and keep it safe.'; }
+    };
+    $('#bkShow', sheet).onclick = () => { $('#bkBox', sheet).hidden = false; $('#bkText', sheet).focus(); };
+    let bkArmed = false;
+    $('#bkGo', sheet).onclick = () => {
+      const err = $('#bkErr', sheet); let data = null;
+      try { data = JSON.parse($('#bkText', sheet).value.trim()); } catch (e) {}
+      if (!data || !Array.isArray(data.profiles) || !data.profiles.length) { err.textContent = 'That does not look like a backup. Paste the whole text.'; bkArmed = false; return; }
+      if (!bkArmed) { bkArmed = true; err.textContent = `This replaces everything on this phone with ${data.profiles.length} saved player(s). Tap again to confirm.`; return; }
+      const pin = S.settings.pin;
+      S = migrate(data, true); S.settings.pin = pin; S.profiles.forEach(p => { p.time = p.time || freshTime(); });
+      CH.sfx.enabled = S.settings.sfx; save(); closeModal(); renderHeader(); route();
+    };
     $('#sPin', sheet).onclick = () => { S.settings.pin = null; save(); askGrownup({ closable: true, onOk: openSettings }); };
     $('#sDone', sheet).onclick = closeModal;
     kidRows();
@@ -214,9 +267,10 @@
     });
     const hero = $('#hello');
     if (!p) { hero.innerHTML = '<h2>Who is playing?</h2>'; $('#path').innerHTML = ''; return; }
-    const deck = deckFor(p.age), next = deck.find(g => !p.done[g.id]) || deck[0];
+    const deck = deckFor(p.age), isNew = g => S.fresh.includes(g.id) && !p.seen[g.id] && !p.done[g.id];
+    const newCount = deck.filter(isNew).length, next = deck.find(isNew) || deck.find(g => !p.done[g.id]) || deck[0];
     hero.innerHTML = `<span class="av big">${p.avatar}</span><div class="hi"><h2>Hi, ${esc(p.name)}!</h2>
-      <p>⭐ ${p.xp} XP · 🔥 ${p.streak}-day streak${p.combo > 1 ? ` · ⚡ ${p.combo} perfect games in a row` : ''}</p></div>
+      <p>⭐ ${p.xp} XP · 🔥 ${p.streak}-day streak${p.combo > 1 ? ` · ⚡ ${p.combo} perfect games in a row` : ''}</p>${newCount ? `<p class="newnote">✨ ${newCount} new game${newCount > 1 ? 's' : ''} to try!</p>` : ''}</div>
       <button type="button" class="btn big" id="playBtn" ${p.time.locked ? 'disabled' : ''}>${p.time.locked ? '🔒 Locked' : '▶ Play'}</button>`;
     $('#playBtn').onclick = () => go(next.id);
     $('#pathTitle').textContent = `${p.name}'s path · ${TIER_NAME[p.age]}`;
@@ -228,12 +282,13 @@
       games.forEach(g => {
         const done = p.done[g.id]; let st = 'open';
         if (done) st = 'done'; else if (!found) { st = 'current'; found = true; }
-        const n = h(`<button type="button" class="node ${st}"><span class="dot">${g.icon}</span><span>${g.title}</span><small>${done ? '⭐'.repeat(done) : ''}</small></button>`);
+        const n = h(`<button type="button" class="node ${st}"><span class="dot">${g.icon}</span><span>${g.title}</span><small>${done ? '⭐'.repeat(done) : ''}</small>${isNew(g) ? '<em class="newbadge">NEW</em>' : ''}</button>`);
         n.style.transform = `translateX(${offs[k++ % 4]}px)`;
         n.onclick = () => go(g.id);
         box.appendChild(n);
       });
     });
+    $('#saveWarn').hidden = storageOk;
     const other = p.age === 'young' ? 'older' : 'young';
     $('#peekBtn').textContent = `Grown-ups: peek at the ${TIER_NAME[other]} deck`;
     $('#peekBtn').onclick = () => go(deckFor(other)[0].id);
@@ -261,6 +316,7 @@
     if (!g) return go('home');
     if (p && p.time.locked) { go('home'); openLock(p); return; }
     unmountGame();
+    if (p && !p.seen[g.id]) { p.seen[g.id] = true; save(); }
     const deck = deckFor(g.tier), i = deck.indexOf(g);
     const dir = lastIdx < 0 ? '' : i >= lastIdx ? 'in-next' : 'in-prev'; lastIdx = i;
     $('#home').hidden = true; $('#deck').hidden = false;
@@ -277,7 +333,7 @@
       <div class="ghead"><span class="code">${g.id}</span><div><h3>${g.title}</h3><p class="skill">${g.skill}</p></div>
         <span class="best" aria-label="Best">${p && p.done[g.id] ? stars(p.done[g.id]) : ''}</span>
         <button class="speak" type="button" aria-label="Read the instructions aloud">🔊</button></div>
-      <p class="how">${g.how}</p><div class="play"></div><div class="result" role="status" hidden></div>
+      <p class="goalline">🎯 ${g.goal}</p><ol class="steps">${g.steps.map(t => `<li>${t}</li>`).join('')}</ol><div class="play"></div><div class="result" role="status" hidden></div>
       <button type="button" class="stuck" hidden>💡 Stuck? Show the solution</button><div class="keybox" role="status" hidden></div>
       <details class="notes"><summary>Design notes</summary><ul>${g.notes.map(n => `<li>${n}</li>`).join('')}</ul></details></article>`);
     $('#stack').innerHTML = ''; $('#stack').appendChild(card);
@@ -315,14 +371,14 @@
         show(ok, title, msg, buttons);
         if (young) CH.say(ok ? LINES.yes : pick(LINES.keepGoing));
       },
-      finish({ title }) {
-        const st = usedKey ? 1 : mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1;
+      finish({ title, stars: own, note }) {
+        const st = usedKey ? 1 : own != null ? own : mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1;
         const tries = mistakes + 1;
         const rw = award(g.id, st);
         stuck.hidden = true; keybox.hidden = true; CH.sfx.win();
         const best = $('.best', card); if (best && rw) best.textContent = stars(cur().done[g.id]);
         const seg = $$('#progress .seg')[i]; if (seg && rw) seg.className = `seg here s${cur().done[g.id]}`;
-        let msg = `<span class="stars">${stars(st)}</span> ${usedKey ? 'With the solution key' : st === 3 ? 'First try!' : `${tries} tries`}`;
+        let msg = `<span class="stars">${stars(st)}</span> ${usedKey ? 'With the solution key' : note ? note : st === 3 ? 'First try!' : `${tries} tries`}`;
         if (rw) msg += ` · +${rw.xp} XP` + (rw.bonus ? ` · <b class="combo">⚡ ${rw.combo} in a row: +${rw.bonus} bonus</b>` : '');
         else msg += ' · Pick a player to save stars.';
         const p = cur();
@@ -348,7 +404,7 @@
   function route() {
     const id = location.hash.slice(1);
     if (id && byId[id]) return openCard(id);
-    unmountGame(); lastIdx = -1;
+    unmountGame(); lastIdx = -1; $('#stack').innerHTML = '';
     $('#deck').hidden = true; $('#home').hidden = false; renderHome();
   }
   window.addEventListener('hashchange', route);

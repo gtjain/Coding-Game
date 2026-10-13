@@ -9,9 +9,17 @@ Open `index.html` in a browser. Each game is a flash card; Back / Next (or ← �
 - `js/app.js`: players, per-kid timer, grown-up PIN, home path, deck, stars and streaks.
 - `audio/`: pre-recorded voice clips and `voices.js` (text → file). Generated, do not edit.
 
+## Add levels without losing anyone's progress
+Progress lives in the browser (localStorage, key `code-hoppers-v3`) on the phone. It is stored by game id, so:
+- **Add a game:** give it a new unique `id` in `js/catalog.js`. Existing players keep every point and star. The new game shows a NEW badge until each kid opens it.
+- **Never change or reuse an id** of a game that has been released, and never change the storage `KEY`.
+- **Change what is saved:** add new fields with defaults in `migrate()` in `js/app.js`. It runs on every load and keeps fields it does not know about.
+- **Publish to the same artifact URL.** The browser keeps storage per address, so a new URL starts empty.
+- Every save also writes a backup copy. Grown-ups can copy a backup text (🔒 Grown-ups) and paste it back to restore. Clearing the browser's site data or using a private window loses progress.
+
 ## Add a game
 1. Add an entry to `games` in `js/catalog.js` that reuses an engine (copy a similar entry, change `id`, `title`, `cfg`).
-2. If it adds spoken text (`say`), re-record: see below.
+2. Give it `goal` (one line), `steps` (2 to 4 short steps) and `say` (the same thing, simple, for the voice). Re-record the voice: see below.
 3. Run the tests.
 
 Engines call `g.mistake()` on a wrong try and `g.finish({title})` on success. Stars: 0 mistakes = 3, 1 = 2, 2+ = 1.
