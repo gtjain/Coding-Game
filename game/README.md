@@ -25,9 +25,16 @@ ELEVENLABS_API_KEY=... python tools/build_voice.py --engine elevenlabs --voice <
 Only new or changed lines are recorded. Kokoro model files: `kokoro-v1.0.int8.onnx` and `voices-v1.0.bin`
 from the thewh1teagle/kokoro-onnx GitHub releases; also `pip install kokoro-onnx soundfile` and ffmpeg.
 
+## Publish as one file
+```
+node tools/bundle.mjs      # writes dist/index.html with scripts and audio inlined
+```
+The claude.ai artifact viewer needs this single file; it does not load the separate js/ and audio/ files.
+
 ## Test
 ```
 PW=$(npm root -g)/playwright/index.mjs node test/play.mjs
+PAGE=$PWD/dist/index.html PW=... node test/play.mjs   # test the bundle
 ```
 Checks square alignment at 3 widths, plays every card, stars, streak bonus, voice parsing,
 profile editing, the per-kid timer and PIN lock, and that every spoken line has a clip.

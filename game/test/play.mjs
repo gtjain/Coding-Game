@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const { chromium } = await import(process.env.PW || 'playwright');
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PAGE = 'file://' + path.join(ROOT, 'index.html');
+const PAGE = 'file://' + (process.env.PAGE || path.join(ROOT, 'index.html'));
 let failures = 0;
 const check = (name, ok, extra = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra ? '  ' + extra : ''}`); if (!ok) failures++; };
 

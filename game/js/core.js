@@ -22,7 +22,7 @@ window.CH = window.CH || {};
     CH.stopVoice();
     const file = (window.CH_VOICE || {})[text];
     if (!file) { CH.voiceMisses.add(text); return; }
-    clip = new Audio('audio/' + file);
+    clip = new Audio(file.startsWith('data:') ? file : 'audio/' + file);
     clip.play().catch(() => {});
   };
   CH.stopVoice = () => { try { clip && clip.pause(); } catch (e) {} };

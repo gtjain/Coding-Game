@@ -142,7 +142,7 @@
       if (!cur()) S.current = name;
       save(); $('#newName', sheet).value = ''; err.textContent = ''; kidRows(); renderHome(); renderHeader();
     };
-    $$('[data-v]', sheet).forEach(b => b.onclick = () => { CH.stopVoice(); try { new Audio(`audio/samples/${b.dataset.v}.mp3`).play().catch(() => {}); } catch (e) {} });
+    $$('[data-v]', sheet).forEach(b => b.onclick = () => { CH.stopVoice(); try { new Audio((window.CH_SAMPLES || {})[b.dataset.v] || `audio/samples/${b.dataset.v}.mp3`).play().catch(() => {}); } catch (e) {} });
     $('#sPin', sheet).onclick = () => { S.settings.pin = null; save(); askGrownup({ closable: true, onOk: openSettings }); };
     $('#sDone', sheet).onclick = closeModal;
     kidRows();
