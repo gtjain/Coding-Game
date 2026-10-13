@@ -7,7 +7,7 @@
   const deckFor = tier => GAMES.filter(g => g.tier === tier).map((g, i) => [g, i]).sort((a, b) => a[0].unit - b[0].unit || a[1] - b[1]).map(x => x[0]);
   const TIER_NAME = { young: 'Ages 4–6', older: 'Ages 7–9' };
   const AVATARS = ['🐰', '🐸', '🦊', '🐼', '🐯', '🐙', '🦄', '🐢', '🦁', '🐨', '🐧', '🦖'];
-  const VOICES = [['hf_alpha', 'Alpha (in use)'], ['hf_beta', 'Beta'], ['hm_omega', 'Omega'], ['hm_psi', 'Psi']];
+  const VOICES = [['af_heart', 'Heart (in use)'], ['af_bella', 'Bella'], ['bf_emma', 'Emma, British'], ['am_puck', 'Puck']];
   const KEY_AFTER = 2;   // offer the solution key after this many wrong tries
 
   /* ---------- storage ---------- */
@@ -135,7 +135,7 @@
         <div class="opts" id="newAge"><button type="button" data-a="young" aria-pressed="true">4–6</button><button type="button" data-a="older" aria-pressed="false">7–9</button></div>
         <button type="button" class="btn small" id="addKid">Add</button></div><p class="err" id="addErr"></p></div>
       <div class="row"><h4>Voice</h4><div class="opts">${VOICES.map(([v, n]) => `<button type="button" data-v="${v}">▶ ${n}</button>`).join('')}</div>
-      <p class="fine">Indian-accented voices recorded with Kokoro, a free open-source voice model. Pick one and every line gets re-recorded in it.</p></div>
+      <p class="fine">Neutral English voices from Kokoro, a free open-source model. This is a stand-in until the ElevenLabs voice is recorded. Pick a sample you like and every line gets re-recorded in it.</p></div>
       <div class="row"><h4>Sound effects</h4><div class="opts" id="sfxOpts"><button type="button" data-s="1" aria-pressed="${st.sfx}">On</button><button type="button" data-s="0" aria-pressed="${!st.sfx}">Off</button></div></div>
       <div class="actions"><button type="button" class="btn ghost small" id="sPin">Change PIN</button><button type="button" class="btn" id="sDone">Done</button></div></div>`, true);
     $$('#limOpts button', sheet).forEach(b => b.onclick = () => {

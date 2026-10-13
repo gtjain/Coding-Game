@@ -62,7 +62,7 @@ class ElevenLabs:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--engine", default="kokoro", choices=["kokoro", "elevenlabs"])
-    ap.add_argument("--voice", default="hf_alpha")
+    ap.add_argument("--voice", default="af_heart")
     ap.add_argument("--speed", type=float, default=0.95)
     ap.add_argument("--model", default="eleven_v3", help="ElevenLabs model id")
     ap.add_argument("--models", default=".")
@@ -99,7 +99,7 @@ def main():
         print("samples recorded")
     if a.samples and a.engine == "kokoro":
         (AUDIO / "samples").mkdir(exist_ok=True)
-        for v in ["hf_alpha", "hf_beta", "hm_omega", "hm_psi"]:
+        for v in ["af_heart", "af_bella", "bf_emma", "am_puck"]:
             Kokoro(a.models, v, a.speed).render("Hi! I'm your coding buddy. Help the bunny reach the carrot!", AUDIO / "samples" / f"{v}.mp3")
         print("samples recorded")
 
