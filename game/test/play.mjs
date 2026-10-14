@@ -48,6 +48,20 @@ for (const [W, H] of [[360, 780], [768, 1000], [1280, 900]]) {
   await p.close();
 }
 
+/* 1b. no card scrolls sideways on a small phone */
+{
+  const q = await browser.newPage({ viewport: { width: 360, height: 780 } });
+  await q.goto(PAGE);
+  const ids = await q.evaluate(() => window.CH_CATALOG.games.map(g => g.id)); const wide = [];
+  for (const id of ids) {
+    await q.evaluate(() => { location.hash = 'home'; }); await q.waitForSelector('#home:not([hidden])');
+    await q.evaluate(id => { location.hash = id; }, id); await q.waitForSelector(`#card-${id}`); await q.waitForTimeout(420);
+    if (await q.evaluate(() => document.documentElement.scrollWidth > innerWidth)) wide.push(id);
+  }
+  check(`none of the ${ids.length} cards scrolls sideways at 360px`, wide.length === 0, wide.join(','));
+  await q.close();
+}
+
 /* 2. deck, every card, stars, streak (phone width) */
 const p = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const errors = [];
@@ -80,7 +94,7 @@ await p.keyboard.press('ArrowRight'); await wait(200);
 check('Right arrow key goes forward', await p.evaluate(() => location.hash) === '#A6');
 await p.goBack(); await wait(200);
 check('Browser back button works', await p.evaluate(() => location.hash) === '#A9');
-check('progress bar has one segment per card', await p.locator('#progress .seg').count() === await p.evaluate(() => window.__app.deckFor('young').length));
+check('progress bar has one segment per card in this unit', await p.locator('#progress .seg').count() === await p.evaluate(() => { const g = window.__app.byId[location.hash.slice(1)]; return window.__app.deckFor(g.tier).filter(d => d.unit === g.unit).length; }));
 await open('A1');
 check('first card has Back disabled', await p.locator('#prevBtn').isDisabled());
 
@@ -341,7 +355,7 @@ await stars('B16', 3);
 
 /* ---------- batch 3: 35 more games ---------- */
 const clickCells = async (id, n) => { const end = await p.evaluate(id => document.querySelector(`#card-${id} .play`).__end(), id); const W = await p.evaluate(id => window.CH_CATALOG.games.find(g => g.id === id).cfg.board.w, id); await p.click(`${C(id)} .cell >> nth=${end[1] * W + end[0]}`); };
-const stepsOf = id => p.evaluate(id => document.querySelectorAll(`#card-${id} .prog .blk, #card-${id} .prog .kloop`).length, id);
+const stepsOf = id => p.evaluate(id => document.querySelector(`#card-${id} .play`).__steps(), id);
 // Seed Steps 2-4
 for (const [id, order] of [['A17', ['Put toothpaste on the brush.', 'Brush your teeth.', 'Rinse with water.', 'Big clean smile!']], ['A18', ['An egg.', 'The egg cracks.', 'A chick comes out.', 'It grows into a hen.']], ['A19', ['Crack the eggs.', 'Mix it all up.', 'Bake it in the oven.', 'Put on the candles.', 'Party time!']]]) {
   await open(id); for (const a of order) await p.click(`${C(id)} [aria-label="${a}"]`); await stars(id, 3);
@@ -374,7 +388,7 @@ for (const [id, answers] of [['A26', ['🔵', '🐱', '🌙']], ['A27', ['🟡',
 const endsSeen = {};
 for (const id of ['A28', 'A29', 'A30', 'A31', 'B22', 'B23', 'B24']) {
   await open(id); endsSeen[id] = [];
-  for (let rd = 0; rd < 3; rd++) { const n = await p.evaluate(id => document.querySelector(`#card-${id} .play`).__end(), id); endsSeen[id].push(n.join(',')); const k = await stepsOf(id); await clickCells(id); await wait(400 * (k + 6) + 1500); }
+  for (let rd = 0; rd < 3; rd++) { const n = await p.evaluate(id => document.querySelector(`#card-${id} .play`).__end(), id); endsSeen[id].push(n.join(',')); const k = await stepsOf(id); await clickCells(id); await wait(400 * k + 1800); }
   await stars(id, 3);
 }
 check('chess pieces land where expected', endsSeen.A29.join(' ') === '4,4 2,1 2,1' && endsSeen.A30.join(' ') === '2,2 4,2 4,2' && endsSeen.A31.join(' ') === '1,2 3,1 1,0', JSON.stringify(endsSeen));
@@ -383,6 +397,7 @@ check('chess board is checkered', await p.evaluate(() => { location.hash = 'A29'
 // Puzzle Path: real drag and drop
 await open('A32');
 const dragTo = async (id, label, target) => {
+  await p.locator(`${C(id)} .dpal`).scrollIntoViewIfNeeded();
   const a = await p.locator(`${C(id)} .dpal .pz[aria-label="${label}"]`).boundingBox(), b = await p.locator(target).boundingBox();
   await p.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await p.mouse.down();
   await p.mouse.move(a.x + a.width / 2 + 10, a.y + a.height / 2 - 10, { steps: 3 });

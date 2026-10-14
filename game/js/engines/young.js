@@ -258,7 +258,7 @@
         g.feedback({ ok: false, title: 'It stopped on the green square', msg: 'Follow the blocks one at a time with your finger.', btn: 'Try again', onBtn: () => { board.reset(); board.cells.forEach(e => e.classList.remove('picked', 'right')); } });
       }
     }
-    root.__end = () => end;   // test hook
+    root.__end = () => end; root.__steps = () => steps.length;   // test hooks
     setup();
     return { solve() { board.cells[end[1] * W + end[0]].classList.add('hint'); return `It stops on the <b>glowing square</b>. Follow the blocks one at a time to see why, then tap it.`; } };
   });

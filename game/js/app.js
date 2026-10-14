@@ -320,8 +320,10 @@
     const deck = deckFor(g.tier), i = deck.indexOf(g);
     const dir = lastIdx < 0 ? '' : i >= lastIdx ? 'in-next' : 'in-prev'; lastIdx = i;
     $('#home').hidden = true; $('#deck').hidden = false;
-    $('#progress').innerHTML = deck.map((d, j) => `<button type="button" class="seg${j === i ? ' here' : ''}${p && p.done[d.id] ? ' s' + p.done[d.id] : ''}" aria-label="Card ${j + 1}: ${d.title}"></button>`).join('');
-    $$('#progress .seg').forEach((s, j) => s.onclick = () => go(deck[j].id));
+    // one segment per card in this unit (a whole deck of 40+ cards would not fit on a phone)
+    const unitCards = deck.filter(d => d.unit === g.unit);
+    $('#progress').innerHTML = unitCards.map(d => `<button type="button" class="seg${d === g ? ' here' : ''}${p && p.done[d.id] ? ' s' + p.done[d.id] : ''}" aria-label="${d.title}"></button>`).join('');
+    $$('#progress .seg').forEach((s, j) => s.onclick = () => go(unitCards[j].id));
     $('#pos').textContent = `${i + 1} / ${deck.length}`;
     $('#unitName').textContent = `${TIER_NAME[g.tier]} · Unit ${g.unit + 1} · ${CAT.units[g.tier][g.unit]}`;
     const prev = $('#prevBtn'), next = $('#nextBtn');
@@ -377,7 +379,7 @@
         const rw = award(g.id, st);
         stuck.hidden = true; keybox.hidden = true; CH.sfx.win();
         const best = $('.best', card); if (best && rw) best.textContent = stars(cur().done[g.id]);
-        const seg = $$('#progress .seg')[i]; if (seg && rw) seg.className = `seg here s${cur().done[g.id]}`;
+        const seg = $('#progress .seg.here'); if (seg && rw) seg.className = `seg here s${cur().done[g.id]}`;
         let msg = `<span class="stars">${stars(st)}</span> ${usedKey ? 'With the solution key' : note ? note : st === 3 ? 'First try!' : `${tries} tries`}`;
         if (rw) msg += ` · +${rw.xp} XP` + (rw.bonus ? ` · <b class="combo">⚡ ${rw.combo} in a row: +${rw.bonus} bonus</b>` : '');
         else msg += ' · Pick a player to save stars.';
