@@ -80,7 +80,7 @@ await p.keyboard.press('ArrowRight'); await wait(200);
 check('Right arrow key goes forward', await p.evaluate(() => location.hash) === '#A6');
 await p.goBack(); await wait(200);
 check('Browser back button works', await p.evaluate(() => location.hash) === '#A9');
-check('progress bar has one segment per card', await p.locator('#progress .seg').count() === 16);
+check('progress bar has one segment per card', await p.locator('#progress .seg').count() === await p.evaluate(() => window.__app.deckFor('young').length));
 await open('A1');
 check('first card has Back disabled', await p.locator('#prevBtn').isDisabled());
 
@@ -338,8 +338,147 @@ for (const [runMs, line, opt] of [[2300, 2, 1], [1600, 1, 1], [2300, 2, 2]]) {
 }
 await stars('B16', 3);
 
+
+/* ---------- batch 3: 35 more games ---------- */
+const clickCells = async (id, n) => { const end = await p.evaluate(id => document.querySelector(`#card-${id} .play`).__end(), id); const W = await p.evaluate(id => window.CH_CATALOG.games.find(g => g.id === id).cfg.board.w, id); await p.click(`${C(id)} .cell >> nth=${end[1] * W + end[0]}`); };
+const stepsOf = id => p.evaluate(id => document.querySelectorAll(`#card-${id} .prog .blk, #card-${id} .prog .kloop`).length, id);
+// Seed Steps 2-4
+for (const [id, order] of [['A17', ['Put toothpaste on the brush.', 'Brush your teeth.', 'Rinse with water.', 'Big clean smile!']], ['A18', ['An egg.', 'The egg cracks.', 'A chick comes out.', 'It grows into a hen.']], ['A19', ['Crack the eggs.', 'Mix it all up.', 'Bake it in the oven.', 'Put on the candles.', 'Party time!']]]) {
+  await open(id); for (const a of order) await p.click(`${C(id)} [aria-label="${a}"]`); await stars(id, 3);
+}
+check('Cake Steps shows 5 boxes in one row', await p.evaluate(() => { const s = [...document.querySelectorAll('#card-A19 .slot')].map(e => Math.round(e.getBoundingClientRect().top)); return s.length === 5 && new Set(s).size === 1; }));
+// Squish the Bug 2-3
+for (const [id, rounds] of [['A20', [[2, '🚰'], [2, '🫧'], [1, '🪥']]], ['A21', [[2, '🍬'], [2, '💧'], [3, '💦']]]]) {
+  await open(id); for (const [bug, fix] of rounds) { await p.click(`${C(id)} .scard >> nth=${bug}`); await p.click(`${C(id)} .fixes [data-e="${fix}"]`); await wait(1200); } await stars(id, 3);
+}
+// Repeat Drum
+await open('A22');
+for (const [body, n] of [[['🥁'], 4], [['👏'], 3], [['🥁', '👏'], 3], [['🐸', '🐸', '⭐'], 2]]) {
+  for (const e of body) await p.click(`${C('A22')} .licons [data-e="${e}"]`);
+  await clickN(`${C('A22')} .loopmaker .plus`, n - 1); await p.click(`${C('A22')} .go`); await wait(body.length * n * 380 + 1100);
+}
+await stars('A22', 3);
+await open('A22'); await p.click(`${C('A22')} .licons [data-e="🥁"]`); await clickN(`${C('A22')} .loopmaker .plus`, 2); await p.click(`${C('A22')} .go`); await wait(1800);
+check('Repeat Drum catches a wrong count', /That made 3, not 4/.test(await txt('A22')), await txt('A22'));
+// Car Park, Race Track, Hop Hop Hop 2
+for (const [id, cards, ms] of [['A23', [['right', 3], ['down', 3]], 3800], ['A24', [['up', 4], ['right', 4], ['down', 1]], 5000], ['A25', [['down', 2], ['right', 3], ['up', 2]], 4500]]) {
+  await open(id);
+  for (let i = 0; i < cards.length; i++) { await p.click(`${C(id)} [aria-label="Add ${cards[i][0]}"]`); await clickN(`${C(id)} .hslot >> nth=${i} >> .plus`, cards[i][1]); }
+  await p.click(`${C(id)} .go`); await wait(ms); await stars(id, 3);
+}
+// Pattern Train 2-3 (gaps in the middle and at the start)
+for (const [id, answers] of [['A26', ['🔵', '🐱', '🌙']], ['A27', ['🟡', '🐟', '🚌']]]) {
+  await open(id); for (const a of answers) { await p.click(`${C(id)} .choice:has-text("${a}")`); await wait(1000); } await stars(id, 3);
+}
+// Where Will It Land 2, Rook, Bishop, Knight; older Robot Steps, Loop Landing, Block Landing
+const endsSeen = {};
+for (const id of ['A28', 'A29', 'A30', 'A31', 'B22', 'B23', 'B24']) {
+  await open(id); endsSeen[id] = [];
+  for (let rd = 0; rd < 3; rd++) { const n = await p.evaluate(id => document.querySelector(`#card-${id} .play`).__end(), id); endsSeen[id].push(n.join(',')); const k = await stepsOf(id); await clickCells(id); await wait(400 * (k + 6) + 1500); }
+  await stars(id, 3);
+}
+check('chess pieces land where expected', endsSeen.A29.join(' ') === '4,4 2,1 2,1' && endsSeen.A30.join(' ') === '2,2 4,2 4,2' && endsSeen.A31.join(' ') === '1,2 3,1 1,0', JSON.stringify(endsSeen));
+check('turning robot, loops and blocks land where expected', endsSeen.B22.join(' ') === '3,2 2,2 3,2' && endsSeen.B23.join(' ') === '3,1 2,1 2,3' && endsSeen.B24.join(' ') === '5,2 3,0 3,1', JSON.stringify(endsSeen));
+check('chess board is checkered', await p.evaluate(() => { location.hash = 'A29'; return true; }) && (await (async () => { await p.waitForSelector('#card-A29 .board.chk'); return p.locator('#card-A29 .cell.dk').count(); })()) === 12);
+// Puzzle Path: real drag and drop
+await open('A32');
+const dragTo = async (id, label, target) => {
+  const a = await p.locator(`${C(id)} .dpal .pz[aria-label="${label}"]`).boundingBox(), b = await p.locator(target).boundingBox();
+  await p.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await p.mouse.down();
+  await p.mouse.move(a.x + a.width / 2 + 10, a.y + a.height / 2 - 10, { steps: 3 });
+  await p.mouse.move(b.x + b.width - 8, b.y + b.height / 2, { steps: 8 }); await p.mouse.up();
+};
+for (const d of ['up', 'up', 'right', 'right', 'right']) await dragTo('A32', d, `${C('A32')} .dstrip`);
+check('A32 drag adds pieces to the strip', await p.locator(`${C('A32')} .dstrip .pz`).count() === 5);
+// drop an "up" between the 2nd and 3rd piece
+{ const a = await p.locator(`${C('A32')} .dpal .pz[aria-label="up"]`).boundingBox(), t = await p.locator(`${C('A32')} .dstrip .pz >> nth=2`).boundingBox();
+  await p.mouse.move(a.x + 20, a.y + 20); await p.mouse.down(); await p.mouse.move(a.x + 30, a.y + 10, { steps: 3 }); await p.mouse.move(t.x + 4, t.y + t.height / 2, { steps: 8 }); await p.mouse.up(); }
+const order32 = await p.$$eval('#card-A32 .dstrip .pz', els => els.map(e => e.dataset.d).join(''));
+check('A32 a piece can be dropped between two others', order32 === 'UUURRR', order32);
+// drag the last piece out of the strip, then tap it back on
+{ const t = await p.locator(`${C('A32')} .dstrip .pz >> nth=5`).boundingBox(); await p.mouse.move(t.x + 20, t.y + 20); await p.mouse.down(); await p.mouse.move(t.x + 30, t.y - 40, { steps: 3 }); await p.mouse.move(t.x, t.y - 260, { steps: 8 }); await p.mouse.up(); }
+check('A32 dragging a piece out removes it', await p.locator(`${C('A32')} .dstrip .pz`).count() === 5);
+await p.click(`${C('A32')} .dpal .pz[aria-label="right"]`);
+await p.click(`${C('A32')} .go`); await wait(3600); await stars('A32', 3);
+// Puzzle Path 2 by tapping pieces along the shortest route
+await open('A33');
+const route33 = await p.evaluate(() => CH.solvePath(window.CH_CATALOG.games.find(g => g.id === 'A33').cfg.board));
+for (const d of route33) await p.click(`${C('A33')} .dpal .pz[data-d="${d}"]`);
+await p.click(`${C('A33')} .go`); await wait(400 * route33.length + 1600); await stars('A33', 3);
+// Rhyme Monster 2-3
+for (const [id, counts] of [['A34', [2, 3, 2, 3]], ['A35', [2, 3, 3]]]) {
+  await open(id);
+  for (const n of counts) { for (let k = 0; k < n; k++) await p.click(`${C(id)} .ritem[data-r="1"]:not(.fed) >> nth=0`); await wait(2500); }
+  await stars(id, 3);
+}
+// Mirror Words
+await open('A36');
+for (const same of [true, false, true, false, true, true]) { await p.click(`${C('A36')} .mflip`); await p.click(`${C('A36')} .mans [data-a="${same ? 'yes' : 'no'}"]`); await wait(1200); }
+await stars('A36', 3);
+// Buddy Pairs
+await open('A37');
+for (const n of [4, 5, 6, 7]) {
+  while (await p.locator(`${C('A37')} .pitem`).count() >= 2) { await p.click(`${C('A37')} .pitem >> nth=0`); await p.click(`${C('A37')} .pitem >> nth=1`); }
+  check(`A37 ${n} leaves ${n % 2} alone`, await p.locator(`${C('A37')} .pitem`).count() === n % 2);
+  await p.click(`${C('A37')} .pans [data-a="${n % 2 ? 'odd' : 'even'}"]`); await wait(1200);
+}
+await stars('A37', 3);
+// Make-a-Block 2 and 3
+for (const [id, fn, main, ms] of [['B25', ['up', 'up', 'right', 'right', 'down', 'down'], ['right', 'my block', 'right', 'right', 'my block', 'right'], 7600], ['B26', ['right', 'right', 'up'], ['my block', 'up', 'my block', 'up', 'my block'], 5600]]) {
+  await open(id); await p.click(`${C(id)} .fnbody`); for (const k of fn) await p.click(`${C(id)} [aria-label="Add ${k}"]`);
+  await p.click(`${C(id)} .prog`); for (const k of main) await p.click(`${C(id)} [aria-label="Add ${k}"]`);
+  await p.click(`${C(id)} .go`); await wait(ms); await stars(id, 3);
+}
+const noFn = await p.evaluate(() => ['B25', 'B26'].map(id => { const g = window.CH_CATALOG.games.find(x => x.id === id); return CH.solvePath(g.cfg.board).length > g.cfg.max; }));
+check('Make-a-Block 2 and 3 cannot be solved without a star block', noFn.every(Boolean), JSON.stringify(noFn));
+// Draw Bot 2
+await open('B27');
+await p.click(`${C('B27')} .loopbtn`); for (const k of ['forward', 'forward', 'turn right', 'forward', 'forward', 'forward', 'turn right']) await p.click(`${C('B27')} [aria-label="Add ${k}"]`);
+await p.click(`${C('B27')} .go`); await wait(400 * 14 + 900); check('B27 rectangle', /Next shape/.test(await txt('B27')), await txt('B27')); await p.click(`${R('B27')} button`);
+for (const k of ['forward', 'forward', 'forward', 'turn left', 'forward', 'forward']) await p.click(`${C('B27')} [aria-label="Add ${k}"]`);
+await p.click(`${C('B27')} .go`); await wait(400 * 6 + 900); check('B27 L shape', /Next shape/.test(await txt('B27')), await txt('B27')); await p.click(`${R('B27')} button`);
+for (const k of ['forward', 'turn left', 'forward', 'turn right', 'forward', 'turn left', 'forward', 'turn right', 'forward', 'turn left', 'forward']) await p.click(`${C('B27')} [aria-label="Add ${k}"]`);
+await p.click(`${C('B27')} .go`); await wait(400 * 11 + 900); await stars('B27', 3);
+// Talk to Draw (voice words go through the same parser as the microphone)
+await open('B28');
+await p.evaluate(() => document.querySelector('#card-B28 .play').__hear('forward write forward right forward turn right forward go'));
+await wait(400 * 7 + 1100); check('B28 voice square', /Next shape/.test(await txt('B28')), await txt('B28')); await p.click(`${R('B28')} button`);
+await p.evaluate(() => document.querySelector('#card-B28 .play').__hear('forward right forward lift forward right forward'));
+await p.click(`${C('B28')} .sayword[data-cmd="GO"]`); await wait(400 * 7 + 1100); await stars('B28', 3);
+// Sorting Machine 2 and 3 (wrong order first in 3: the IF is checked first)
+await open('B29');
+for (const c of ['yellow', 'a square', 'a circle']) { await p.click(`${C('B29')} .c0 .chip:has-text("${c}")`); await p.click(`${C('B29')} .go`); await wait(3200); if (c !== 'a circle') await p.click(`${R('B29')} button`); }
+await stars('B29', 3);
+await open('B30');
+await p.click(`${C('B30')} .c0 .chip:has-text("red")`); await p.click(`${C('B30')} .c1 .chip:has-text("a star")`); await p.click(`${C('B30')} .go`); await wait(3600);
+check('B30 wrong rule order is caught', /wrong basket/.test(await txt('B30')), await txt('B30')); await p.click(`${R('B30')} button`);
+for (const [a, b] of [['a star', 'red'], ['blue', 'a circle'], ['a square', 'yellow']]) { await p.click(`${C('B30')} .c0 .chip:has-text("${a}")`); await p.click(`${C('B30')} .c1 .chip:has-text("${b}")`); await p.click(`${C('B30')} .go`); await wait(3600); if (a !== 'a square') await p.click(`${R('B30')} button`); }
+await stars('B30', 2);
+// Rule detective gates
+for (const [id, rounds] of [['B31', [['even', 0], ['odd', 0], ['ends', 5]]], ['B32', [['gt', 0], ['lt', 0], ['gt', 9]]], ['B33', [['mult', 2], ['mult', 1], ['mult', 3]]]]) {
+  await open(id);
+  for (let i = 0; i < rounds.length; i++) {
+    const [t, plus] = rounds[i]; await p.click(`${C(id)} .rtpl [data-t="${t}"]`); await clickN(`${C(id)} .rparam .plus`, plus); await p.click(`${C(id)} .go`); await wait(2200);
+    if (i < rounds.length - 1) await p.click(`${R(id)} button`);
+  }
+  await stars(id, 3);
+}
+await open('B33'); await p.click(`${C('B33')} .rtpl [data-t="mult"]`); await p.click(`${C('B33')} .go`); await wait(2200);
+check('B33 "multiple of 2" is rejected by the NO examples', /examples do not fit|wrong door/.test(await txt('B33')), await txt('B33'));
+// Variable Boxes 1-2
+for (const [id, answers] of [['B34', [[8, 2400], [16, 3000], [4, 3400]]], ['B35', [[10, 5400], [10, 7200], [3, 4800]]]]) {
+  await open(id);
+  for (let i = 0; i < answers.length; i++) { await p.click(`${C(id)} .vopts [data-n="${answers[i][0]}"]`); await wait(answers[i][1]); if (i < answers.length - 1) await p.click(`${R(id)} button`); }
+  await stars(id, 3);
+}
+await open('B34'); check('B34 shows a box for every variable', await p.locator(`${C('B34')} .vbox`).count() === 2);
+// B4 scale numbers sit on the grid lines
+await open('B4');
+const axis = await p.evaluate(() => { const t = document.querySelector('#card-B4 .towers').getBoundingClientRect(); const base = t.bottom - 3; return [...document.querySelectorAll('#card-B4 .axis span')].map(s => { const r = s.getBoundingClientRect(); return Math.abs((r.top + r.height / 2) - (base - (+s.textContent) * 16)); }); });
+check('B4 scale numbers line up with the grid lines', axis.length === 9 && Math.max(...axis) <= 1.5, axis.map(v => v.toFixed(1)).join(','));
+
 /* solution key on every card */
-const ALL = ['A1', 'A9', 'A6', 'A2', 'A3', 'A4', 'A5', 'A7', 'A8', 'B1', 'B12', 'B2', 'B4', 'B8', 'B10', 'B3', 'B5', 'B9', 'B6', 'B7', 'B11', ...NEW_YOUNG, ...NEW_OLDER];
+const ALL = await p.evaluate(() => window.CH_CATALOG.games.map(g => g.id));
 const cat = await p.evaluate(() => window.CH_CATALOG.games.map(g => ({ id: g.id, goal: g.goal, steps: g.steps, how: g.how })));
 check('every game has a goal and 2+ steps, no old paragraph text', cat.length === ALL.length && cat.every(g => g.goal && g.steps.length >= 2 && !g.how), `${cat.length} games`);
 const noKey = [];
@@ -442,11 +581,12 @@ await q.reload(); await q.waitForSelector('#hello');
 const hdr = async pg => (await pg.innerText('#whoBtn')).replace(/\s+/g, ' ');
 check('old save keeps name, avatar and points', /🦄 Pippa ⭐ 123/.test(await hdr(q)), await hdr(q));
 check('old save keeps stars on finished games', /Bunny Hop\s*⭐⭐⭐/.test((await q.innerText('#path')).replace(/\n/g, ' ')) && /Pattern Train\s*⭐⭐/.test((await q.innerText('#path')).replace(/\n/g, ' ')));
-check('all 7 new ages 4–6 games are marked NEW', await q.locator('#path .newbadge').count() === 7 && /7 new games/.test(await q.innerText('#hello')));
+const youngNew = await q.evaluate(() => window.__app.deckFor('young').filter(g => !['A1', 'A9', 'A6', 'A2', 'A3', 'A4', 'A5', 'A7', 'A8'].includes(g.id)).length);
+check(`all ${youngNew} newer ages 4–6 games are marked NEW`, await q.locator('#path .newbadge').count() === youngNew && new RegExp(youngNew + ' new games').test(await q.innerText('#hello')), `${await q.locator('#path .newbadge').count()} badges`);
 await q.click('#playBtn'); await q.waitForSelector('#card-A11');
 check('Play goes straight to a new game', await q.evaluate(() => location.hash) === '#A11');
 await q.evaluate(() => { location.hash = 'home'; }); await q.waitForSelector('#home:not([hidden])');
-check('a game stops being NEW once opened', await q.locator('#path .newbadge').count() === 6);
+check('a game stops being NEW once opened', await q.locator('#path .newbadge').count() === youngNew - 1);
 check('points are unchanged by browsing', /⭐ 123/.test(await hdr(q)));
 // next release adds a game to the catalog
 const q2 = await ctx.newPage();
@@ -459,9 +599,9 @@ await q2.addInitScript(() => {
 });
 await q2.goto(PAGE); await q2.waitForSelector('#hello');
 check('after an update the points are still there', /🦄 Pippa ⭐ 123/.test(await hdr(q2)), await hdr(q2));
-check('after an update the new game appears marked NEW', /Bunny Hop 3/.test(await q2.innerText('#path')) && await q2.locator('#path .newbadge').count() === 7);
+check('after an update the new game appears marked NEW', /Bunny Hop 3/.test(await q2.innerText('#path')) && await q2.locator('#path .newbadge').count() === youngNew);
 check('after an update the finished games keep their stars', /Bunny Hop\s*⭐⭐⭐/.test((await q2.innerText('#path')).replace(/\n/g, ' ')));
-check('the deck grew by one card', await q2.evaluate(() => window.__app.deckFor('young').length) === 17);
+check('the deck grew by one card', await q2.evaluate(() => window.__app.deckFor('young').length) === await q.evaluate(() => window.__app.deckFor('young').length) + 1);
 const saved = await q2.evaluate(() => JSON.parse(localStorage.getItem('code-hoppers-v3')));
 check('the save keeps unknown fields and finished games that are no longer in the catalog', saved.profiles[0].badges?.[0] === 'future-field' && saved.profiles[0].done.ZZ9 === 3 && saved.known.includes('Z1') && saved.v === 4, JSON.stringify(saved.profiles[0].done));
 await q2.close();

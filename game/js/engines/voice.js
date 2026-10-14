@@ -46,7 +46,7 @@
       if (state === 'on') { heard.textContent = 'Listening… say a word.'; g.say(CH.LINES.listening); }
       else if (state === 'heard') heard.textContent = `I heard: “${text}”`;
       else if (state === 'off') heard.textContent = 'Tap the microphone to talk.';
-      else if (state === 'blocked') heard.textContent = 'The microphone is not available here. Tap the words below instead.';
+      else if (state === 'blocked') heard.textContent = 'This page is not allowed to use the microphone. A grown-up can open the website version and allow the microphone. Tap the words below for now.';
       else if (state === 'unsupported') heard.textContent = 'This browser cannot listen. Tap the words below instead.';
     });
     btn.onclick = () => { if (L.on) L.stop(); else L.start(); };
@@ -97,4 +97,5 @@
       return `Say: <b>${ops.map(o => cfg.words[o].label).join(', ')}</b>, then <b>go</b>. The blocks are loaded: say or tap <b>go</b>.`;
     } };
   });
+  CH.voiceUI = { micUI, micHTML, wordButtons };   // used by Talk to Draw
 })(window.CH);

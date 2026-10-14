@@ -4,47 +4,58 @@
 
   /* Pick one condition that sorts shapes into two baskets (Sorting Machine) */
   CH.engine('sorter', (root, cfg, g) => {
+    const two = !!cfg.two;   // two rules: IF ... ELSE IF ... ELSE, three baskets
     root.innerHTML = `<div class="goal"></div><div class="belt"></div>
-      <div class="rule"><div><span class="kw">IF</span>it is…</div><div class="chips"></div><div><span class="kw">THEN</span>⬅ left basket</div><div><span class="kw">ELSE</span>right basket ➡</div></div>
-      <div class="baskets"><div class="basket"><h4>⬅ Left</h4><div class="in L"></div></div><div class="basket"><h4>Right ➡</h4><div class="in R"></div></div></div>
+      <div class="rule"><div><span class="kw">IF</span>it is…</div><div class="chips c0"></div><div><span class="kw">THEN</span>⬅ left basket</div>
+      ${two ? '<div><span class="kw">ELSE IF</span>it is…</div><div class="chips c1"></div><div><span class="kw">THEN</span>⬇ middle basket</div>' : ''}
+      <div><span class="kw">ELSE</span>right basket ➡</div></div>
+      <div class="baskets${two ? ' three' : ''}"><div class="basket"><h4>⬅ Left</h4><div class="in L"></div></div>${two ? '<div class="basket"><h4>⬇ Middle</h4><div class="in M"></div></div>' : ''}<div class="basket"><h4>Right ➡</h4><div class="in R"></div></div></div>
       <div class="actions"><button type="button" class="btn go">▶ Run machine</button></div>`;
     const COL = { red: '#FF6150', blue: '#3D8BFF', yellow: '#FFC23C' };
     const star = (() => { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 7 : 17; p.push((20 + r * Math.cos(a)).toFixed(1) + ',' + (21 + r * Math.sin(a)).toFixed(1)); } return p.join(' '); })();
     const shape = (s, c) => `<svg viewBox="0 0 40 40" aria-hidden="true">${s === 'star' ? `<polygon points="${star}" fill="${c}"/>` : s === 'circle' ? `<circle cx="20" cy="20" r="15" fill="${c}"/>` : `<rect x="6" y="6" width="28" height="28" rx="5" fill="${c}"/>`}</svg>`;
     const conds = [['color', 'red', 'red'], ['color', 'blue', 'blue'], ['color', 'yellow', 'yellow'], ['shape', 'star', 'a star'], ['shape', 'circle', 'a circle'], ['shape', 'square', 'a square']];
-    let gi = 0, pick = null, busy = false;
+    const is = ([s, c], k, v) => (k === 'color' ? c : s) === v;
+    const where = (it, a, b) => is(it, a[0], a[1]) ? 'L' : two && b && is(it, b[0], b[1]) ? 'M' : 'R';
+    let gi = 0, picks = [null, null], busy = false;
+    const goalRule = G => two ? [[G.a.k, G.a.v], [G.b.k, G.b.v]] : [[G.k, G.v], null];
     function draw() {
       $('.goal', root).textContent = `Puzzle ${gi + 1} of ${cfg.goals.length}. ${cfg.goals[gi].text}`;
       $('.belt', root).innerHTML = cfg.items.map(([s, c]) => `<span class="item">${shape(s, COL[c])}</span>`).join('');
-      $('.in.L', root).innerHTML = ''; $('.in.R', root).innerHTML = '';
-      const ch = $('.chips', root); ch.innerHTML = '';
-      conds.forEach(c => {
-        const b = h(`<button type="button" class="chip" aria-pressed="${pick === c}">${c[0] === 'color' ? `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="${COL[c[1]]}"/></svg>` : shape(c[1], '#55628A')}${c[2]}</button>`);
-        b.onclick = () => { if (busy) return; pick = c; g.hide(); draw(); }; ch.appendChild(b);
+      $$('.in', root).forEach(e => { e.innerHTML = ''; });
+      [0, 1].forEach(row => {
+        const ch = $('.c' + row, root); if (!ch) return; ch.innerHTML = '';
+        conds.forEach(c => {
+          const b = h(`<button type="button" class="chip" aria-pressed="${picks[row] === c}">${c[0] === 'color' ? `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="${COL[c[1]]}"/></svg>` : shape(c[1], '#55628A')}${c[2]}</button>`);
+          b.onclick = () => { if (busy) return; picks[row] = c; g.hide(); draw(); }; ch.appendChild(b);
+        });
       });
     }
     $('.go', root).onclick = async () => {
       if (busy) return;
-      if (!pick) return g.feedback({ ok: false, title: 'Pick a condition', msg: 'Choose what the machine should check.', btn: 'OK' });
+      if (!picks[0] || (two && !picks[1])) return g.feedback({ ok: false, title: 'Pick the conditions', msg: two ? 'Choose a condition for IF and for ELSE IF.' : 'Choose what the machine should check.', btn: 'OK' });
       busy = true; g.hide(); draw();
-      const G = cfg.goals[gi], belt = $$('.item', $('.belt', root)); let wrong = 0;
+      const [ga, gb] = goalRule(cfg.goals[gi]), belt = $$('.item', $('.belt', root)); let wrong = 0;
       for (let i = 0; i < cfg.items.length; i++) {
-        const [s, c] = cfg.items[i], val = pick[0] === 'color' ? c : s, left = val === pick[1], want = (G.k === 'color' ? c : s) === G.v;
-        $(left ? '.in.L' : '.in.R', root).appendChild(belt[i]); CH.sfx.pop(left ? 1.1 : .85, .6);
-        if (left !== want) { belt[i].classList.add('wrong'); wrong++; }
+        const it = cfg.items[i], to = where(it, picks[0], picks[1]), want = where(it, ga, gb);
+        $('.in.' + to, root).appendChild(belt[i]); CH.sfx.pop(to === 'L' ? 1.1 : to === 'M' ? 1 : .85, .6);
+        if (to !== want) { belt[i].classList.add('wrong'); wrong++; }
         await sleep(350);
       }
       busy = false;
       if (!wrong) {
-        if (gi < cfg.goals.length - 1) return g.feedback({ ok: true, title: 'Sorted!', msg: 'Ready for the next puzzle?', btn: 'Next puzzle', onBtn: () => { gi++; pick = null; draw(); } });
+        if (gi < cfg.goals.length - 1) return g.feedback({ ok: true, title: 'Sorted!', msg: 'Ready for the next puzzle?', btn: 'Next puzzle', onBtn: () => { gi++; picks = [null, null]; draw(); } });
         return g.finish({ title: 'Machine master!' });
       }
       g.mistake();
-      g.feedback({ ok: false, title: `${wrong} in the wrong basket`, msg: 'The red-ringed shapes went the wrong way. Try a different condition.', btn: 'Try again', onBtn: draw });
+      g.feedback({ ok: false, title: `${wrong} in the wrong basket`, msg: two ? 'The red-ringed shapes went the wrong way. The machine checks the IF first, then the ELSE IF.' : 'The red-ringed shapes went the wrong way. Try a different condition.', btn: 'Try again', onBtn: draw });
     };
     draw();
-    return { solve() { if (busy) return ''; const G = cfg.goals[gi]; pick = conds.find(c => c[0] === G.k && c[1] === G.v); draw();
-      return `IF it is <b>${pick[2]}</b> THEN left basket. Picked for you: press <b>Run machine</b>.`; } };
+    return { solve() {
+      if (busy) return ''; const [ga, gb] = goalRule(cfg.goals[gi]);
+      picks = [conds.find(c => c[0] === ga[0] && c[1] === ga[1]), gb ? conds.find(c => c[0] === gb[0] && c[1] === gb[1]) : null]; draw();
+      return `IF it is <b>${picks[0][2]}</b> THEN left${two ? `, ELSE IF it is <b>${picks[1][2]}</b> THEN middle` : ''}. Picked for you: press <b>Run machine</b>.`;
+    } };
   });
 
   /* Choose last digits that mean "even" (Odd or Even Gate) */

@@ -67,6 +67,10 @@ window.CH = window.CH || {};
 
   /* ---- directions ---- */
   CH.DIRS = { U: [0, -1, '↑'], R: [1, 0, '→'], D: [0, 1, '↓'], L: [-1, 0, '←'] };
+  // diagonal steps (bishop) and knight jumps: 2 squares one way, then 1 square the other
+  Object.assign(CH.DIRS, { UR: [1, -1, '↗'], UL: [-1, -1, '↖'], DR: [1, 1, '↘'], DL: [-1, 1, '↙'],
+    NUR: [1, -2, '2↑1→'], NUL: [-1, -2, '2↑1←'], NDR: [1, 2, '2↓1→'], NDL: [-1, 2, '2↓1←'],
+    NRU: [2, -1, '2→1↑'], NRD: [2, 1, '2→1↓'], NLU: [-2, -1, '2←1↑'], NLD: [-2, 1, '2←1↓'] });
   CH.ORDER = ['U', 'R', 'D', 'L'];
   CH.DNAME = { U: 'up', R: 'right', D: 'down', L: 'left' };
   CH.ARROW_OPS = CH.ORDER.map(d => ({ id: d, glyph: CH.DIRS[d][2], label: CH.DNAME[d] }));
@@ -84,11 +88,11 @@ window.CH = window.CH || {};
     let walls = cfg.walls || [];
     if (cfg.path) { const ps = new Set(cfg.path.map(p => p + '')); walls = []; for (let y = 0; y < H; y++) for (let x = 0; x < w; x++) if (!ps.has(x + ',' + y)) walls.push([x, y]); }
     const wallMap = new Map(walls.map(([x, y, ic]) => [x + ',' + y, ic || wallIcon]));
-    const b = document.createElement('div'); b.className = 'board';
+    const b = document.createElement('div'); b.className = 'board' + (cfg.checker ? ' chk' : '');
     b.style.setProperty('--w', w); b.style.setProperty('--h', H); if (bw) b.style.setProperty('--bw', bw + 'px');
     const cells = [];
     for (let y = 0; y < H; y++) for (let x = 0; x < w; x++) {
-      const c = document.createElement('div'); const k = x + ',' + y; c.className = 'cell';
+      const c = document.createElement('div'); const k = x + ',' + y; c.className = 'cell' + (cfg.checker && (x + y) % 2 ? ' dk' : '');
       if (wallMap.has(k)) { c.classList.add('wall'); c.textContent = wallMap.get(k); }
       if (goal && x === goal.x && y === goal.y) c.textContent = prize;
       cells.push(c); b.appendChild(c);

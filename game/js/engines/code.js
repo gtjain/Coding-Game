@@ -58,7 +58,7 @@
   CH.engine('counter', (root, cfg, g) => {
     const stepper = (k, label) => `<span class="stepper" data-k="${k}"><button type="button" class="minus" aria-label="Lower ${label}">−</button><b></b><button type="button" class="plus" aria-label="Raise ${label}">+</button></span>`;
     const U = 16;   // px per block
-    root.innerHTML = `<div class="dots"></div><div class="towerwrap"><div class="axis" aria-hidden="true">${Array.from({ length: 9 }, (_, i) => `<span>${9 - i}</span>`).join('')}</div><div class="towers"></div></div><div class="countbox">count = <b>–</b></div>
+    root.innerHTML = `<div class="dots"></div><div class="towerwrap"><div class="axis" aria-hidden="true">${Array.from({ length: 9 }, (_, i) => `<span style="--k:${i + 1}">${i + 1}</span>`).join('')}</div><div class="towers"></div></div><div class="countbox">count = <b>–</b></div>
       <div class="rule"><div><span class="kw">START</span> at ${stepper('start', 'start')}</div><div><span class="kw">STOP</span> at ${stepper('stop', 'stop')}</div>
       <div><span class="kw">JUMP</span> by</div><div class="chips jumps"></div><div><span class="kw">EACH TIME</span> build a tower as tall as the count</div></div>
       <div class="actions"><button type="button" class="btn go">▶ Count</button></div>`;
@@ -100,8 +100,10 @@
 
   /* Turtle drawing with relative turns (Draw Bot) */
   CH.engine('turtle', (root, cfg, g) => {
-    root.innerHTML = `<div class="dots"></div><div class="paper"></div><div class="counter"></div><div class="tray prog" data-empty="Main program"></div><div class="palette"></div>
-      <div class="actions"><button type="button" class="btn ghost clear">Clear</button><button type="button" class="btn go">▶ Draw</button></div>`;
+    const V = cfg.words ? CH.voiceUI : null;   // voice version: say forward / left / right / go
+    root.innerHTML = `<div class="dots"></div><div class="paper"></div>${V ? V.micHTML : ''}<div class="counter"></div><div class="tray prog" data-empty="${V ? 'Say forward, left or right' : 'Main program'}"></div>
+      ${V ? '<p class="saylabel">No microphone? Tap a word:</p>' : ''}<div class="palette">${V ? V.wordButtons(cfg.words, Object.keys(cfg.words)) : ''}</div>
+      <div class="actions"><button type="button" class="btn ghost clear">Clear</button>${V ? '' : '<button type="button" class="btn go">▶ Draw</button>'}</div>`;
     const N = cfg.n, G = 40, PAD = 20, VEC = [[0, -1], [1, 0], [0, 1], [-1, 0]];
     let si = 0, T, pos, dir, deg;
     const px = v => PAD + v * G;
@@ -136,11 +138,18 @@
       return drawn.size === T.segs.size && [...drawn].every(k => T.segs.has(k)) ? { ok: true } : { ok: false, step: null };
     }
     setup();
-    const ed = CH.makeEditor(root, { ops: [{ id: 'F', glyph: '⬆', label: 'forward' }, { id: 'R', glyph: '↻', label: 'turn right' }, { id: 'L', glyph: '↺', label: 'turn left' }], loop: true, max: 16 });
-    CH.wireEditor(root, g, ed, { run, reset, winTitle: 'Masterpiece!', bumpTitle: 'Off the paper!', missTitle: 'Not the same shape',
+    const ed = CH.makeEditor(root, { ops: [{ id: 'F', glyph: '⬆', label: 'forward' }, { id: 'R', glyph: '↻', label: 'turn right' }, { id: 'L', glyph: '↺', label: 'turn left' }], loop: !V, palette: !V, max: cfg.max || 16 });
+    const go = CH.wireEditor(root, g, ed, { run, reset, winTitle: 'Masterpiece!', bumpTitle: 'Off the paper!', missTitle: 'Not the same shape',
       levels: { hasNext: () => si < cfg.shapes.length - 1, next: () => { si++; setup(); } } });
-    return { solve() {
+    let L = null;
+    if (V) {
+      const cmd = cs => cs.forEach(c => { if (c === 'GO') { CH.sfx.rise(); go(); } else if (c === 'UNDO') ed.undo(); else ed.add({ t: 'op', op: c }); });
+      L = V.micUI(root, cfg, g, cmd);
+      $$('.sayword', root).forEach(b => b.onclick = () => cmd([b.dataset.cmd]));
+    }
+    return { unmount() { L && L.stop(); }, solve() {
       if (ed.busy) return '';
+      if (V) { ed.load({ main: [...T.sol] }); reset(); return `Say: <b>${[...T.sol].map(o => cfg.words[o].label).join(', ')}</b>, then <b>go</b>. The blocks are loaded: say or tap <b>go</b>.`; }
       const sol = T.sol; let unit = sol;
       for (let len = 1; len <= sol.length; len++) if (sol.length % len === 0 && sol.slice(0, len).repeat(sol.length / len) === sol) { unit = sol.slice(0, len); break; }
       const k = sol.length / unit.length, spec = { main: k > 1 ? [{ loop: k, body: [...unit] }] : [...unit] };

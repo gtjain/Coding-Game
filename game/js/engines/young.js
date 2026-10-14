@@ -111,8 +111,9 @@
     function draw() {
       const R = cfg.rounds[r]; CH.dotsBar($('.dots', root), cfg.rounds.length, r);
       const train = $('.train', root);
-      train.style.setProperty('--n', R.seq.length + 1);
-      train.innerHTML = loco + R.seq.map((x, i) => wagon(x, i)).join('') + wagon('', R.seq.length, true);
+      const gap = R.q != null;   // q = position of the missing car; default is the end
+      train.style.setProperty('--n', R.seq.length + (gap ? 0 : 1));
+      train.innerHTML = loco + R.seq.map((x, i) => gap && i === R.q ? wagon('', i, true) : wagon(x, i)).join('') + (gap ? '' : wagon('', R.seq.length, true));
       const ch = $('.choices', root); ch.innerHTML = '';
       R.opts.forEach(o => {
         const b = h(`<button type="button" class="choice">${o}</button>`);
@@ -120,7 +121,7 @@
           if (busy) return;
           if (o !== R.ans) { g.mistake(); shake(b); g.say(LINES.tryAgain); return; }
           busy = true;
-          const q = $('.wagon.q', root); q.className = 'wagon ' + COLORS[R.seq.length % 4]; $('.cargo', q).textContent = o; pop(q);
+          const q = $('.wagon.q', root); q.className = 'wagon ' + COLORS[(R.q != null ? R.q : R.seq.length) % 4]; $('.cargo', q).textContent = o; pop(q);
           g.say(LINES.yes); await sleep(800); busy = false; r++;
           if (r < cfg.rounds.length) draw(); else { CH.dotsBar($('.dots', root), cfg.rounds.length, r); train.classList.add('go'); g.finish({ title: 'All aboard!' }); }
         };
@@ -128,13 +129,14 @@
       });
     }
     draw();
-    return { solve() { const ans = cfg.rounds[r].ans; $$('.choice', root).forEach(b => b.classList.toggle('hint', b.textContent === ans)); return `The next car is <span class="kbig">${ans}</span>. Look for the glowing button.`; } };
+    return { solve() { const ans = cfg.rounds[r].ans; $$('.choice', root).forEach(b => b.classList.toggle('hint', b.textContent === ans)); return `The missing car is <span class="kbig">${ans}</span>. Look for the glowing button.`; } };
   });
 
   /* Put picture steps in order (Seed Steps) */
   CH.engine('order', (root, cfg, g) => {
     root.innerHTML = `<div class="slots"></div><div class="cards"></div>`;
     const n = cfg.steps.length;
+    root.style.setProperty('--n', n);
     let placed = Array(n).fill(null);
     function draw() {
       const sl = $('.slots', root); sl.innerHTML = '';
@@ -197,14 +199,44 @@
       return `<span class="kbig">${cfg.conditions.map(c => `${c.e}→${c.answer}`).join('  ')}</span> The rules are filled in: press <b>Go</b>.`; } };
   });
 
-  /* Predict where a program ends (Where Will It Land?) */
+  /* Predict where a program ends (Where Will It Land? and chess / loop / block versions)
+     Tokens: U R D L, diagonals UR UL DR DL, knight jumps NUR NRU ..., F LT RT (forward and turns),
+     each with an optional count: 'R3' = three steps right. Rounds give p: [tokens] or prog: {main, fn}
+     where main items are tokens, '*' (the ⭐ block) or {loop: n, body: [...]}. */
   CH.engine('predict', (root, cfg, g) => {
-    root.innerHTML = `<div class="dots"></div><div class="tray prog readonly"></div><div class="boardHost"></div>`;
-    const tray = $('.prog', root), W = cfg.board.w;
-    let r = 0, busy = false, board;
+    root.innerHTML = `<div class="dots"></div><div class="fnshow"></div><div class="tray prog readonly"></div><div class="boardHost"></div>`;
+    const tray = $('.prog', root), fnBox = $('.fnshow', root), W = cfg.board.w;
+    const TURN = { F: '⬆', LT: '↺', RT: '↻' };
+    const parse = t => { const m = /^(N[UDLR]{2}|UR|UL|DR|DL|LT|RT|U|R|D|L|F)(\d*)$/.exec(t); return { base: m[1], n: m[2] ? +m[2] : 1 }; };
+    const glyph = b => TURN[b] || (b[0] === 'N' && b.length === 3 ? '♞' + DIRS[b][2] : DIRS[b][2]);
+    let r = 0, busy = false, board, steps = [], end = null;
+    function chip(t) { const { base, n } = parse(t); const el = h(`<span class="blk${n > 1 || glyph(base).length > 1 ? ' wide' : ''}">${glyph(base)}${n > 1 ? '×' + n : ''}</span>`); return { el, ops: Array(n).fill(base) }; }
+    function build(R) {
+      tray.innerHTML = ''; fnBox.innerHTML = ''; steps = [];
+      let fnChips = [];
+      if (R.prog && R.prog.fn) {
+        const row = h('<div class="kfn"><b class="kg call">⭐</b><span>=</span></div>');
+        fnChips = R.prog.fn.map(t => { const c = chip(t); row.appendChild(c.el); return c; }); fnBox.appendChild(row);
+      }
+      const emit = (it, box, extra) => {
+        if (it === '*') { const el = h('<span class="blk call">⭐</span>'); box.appendChild(el); fnChips.forEach(c => c.ops.forEach(op => steps.push({ op, els: [c.el, el, ...extra] }))); return; }
+        if (typeof it === 'string') { const c = chip(it); box.appendChild(c.el); c.ops.forEach(op => steps.push({ op, els: [c.el, ...extra] })); return; }
+        const L = h(`<span class="kloop pl">🔁 ${it.loop}×</span>`); box.appendChild(L);
+        const start = steps.length; it.body.forEach(b => emit(b, L, [L, ...extra])); const once = steps.slice(start);
+        for (let k = 1; k < it.loop; k++) once.forEach(s => steps.push(s));
+      };
+      (R.p || R.prog.main).forEach(it => emit(it, tray, []));
+      // where does it really end? (simulated without walls)
+      let x = cfg.board.start[0], y = cfg.board.start[1], hd = cfg.board.heading || 0;
+      steps.forEach(({ op }) => {
+        if (op === 'LT') hd = (hd + 3) % 4; else if (op === 'RT') hd = (hd + 1) % 4;
+        else { const v = DIRS[op === 'F' ? CH.ORDER[hd] : op]; x += v[0]; y += v[1]; }
+      });
+      end = [x, y];
+    }
     function setup() {
       CH.dotsBar($('.dots', root), cfg.rounds.length, r);
-      tray.innerHTML = cfg.rounds[r].p.map(d => `<span class="blk" aria-label="${DNAME[d]}">${DIRS[d][2]}</span>`).join('');
+      build(cfg.rounds[r]);
       board = CH.makeBoard($('.boardHost', root), cfg.board); board.el.classList.add('pick');
       board.cells.forEach((c, i) => {
         const x = i % W, y = Math.floor(i / W);
@@ -212,21 +244,22 @@
         c.onclick = () => choose(x, y, c); c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(x, y, c); } };
       });
     }
+    const light = i => { $$('.now', root).forEach(e => e.classList.remove('now')); if (i >= 0) steps[i].els.forEach(e => e.classList.add('now')); };
     async function choose(x, y, c) {
       if (busy) return; busy = true; g.hide();
       board.cells.forEach(e => e.classList.remove('picked', 'right', 'hint')); c.classList.add('picked');
-      const R = cfg.rounds[r], els = $$('.blk', tray);
-      await board.run(R.p.map(op => ({ op })), i => els.forEach((e, j) => e.classList.toggle('now', j === i)));
-      board.cells[R.end[1] * W + R.end[0]].classList.add('right');
-      if (x === R.end[0] && y === R.end[1]) {
+      await board.run(steps, light); light(-1);
+      board.cells[end[1] * W + end[0]].classList.add('right');
+      if (x === end[0] && y === end[1]) {
         g.say(LINES.yes); await sleep(900); busy = false; r++;
-        if (r < cfg.rounds.length) setup(); else { CH.dotsBar($('.dots', root), cfg.rounds.length, r); g.finish({ title: 'You can read code!' }); }
+        if (r < cfg.rounds.length) setup(); else { CH.dotsBar($('.dots', root), cfg.rounds.length, r); g.finish({ title: cfg.winTitle || 'You can read code!' }); }
       } else {
         busy = false; g.mistake();
-        g.feedback({ ok: false, title: 'It stopped on the green square', msg: 'Follow the arrows one at a time with your finger.', btn: 'Try again', onBtn: () => { board.reset(); board.cells.forEach(e => e.classList.remove('picked', 'right')); } });
+        g.feedback({ ok: false, title: 'It stopped on the green square', msg: 'Follow the blocks one at a time with your finger.', btn: 'Try again', onBtn: () => { board.reset(); board.cells.forEach(e => e.classList.remove('picked', 'right')); } });
       }
     }
+    root.__end = () => end;   // test hook
     setup();
-    return { solve() { const [x, y] = cfg.rounds[r].end; board.cells[y * W + x].classList.add('hint'); return 'The bunny stops on the <b>glowing square</b>. Tap it.'; } };
+    return { solve() { board.cells[end[1] * W + end[0]].classList.add('hint'); return `It stops on the <b>glowing square</b>. Follow the blocks one at a time to see why, then tap it.`; } };
   });
 })(window.CH);

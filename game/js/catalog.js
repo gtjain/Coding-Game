@@ -7,6 +7,9 @@ const NUM = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eig
 const cap = w => w[0].toUpperCase() + w.slice(1);
 const addSay = (a, b, thing) => `${cap(NUM[a])} ${thing} and ${NUM[b]} ${thing}. Tap the basket button to put them together. Then tap how many.`;
 const subSay = (a, b, thing) => `${cap(NUM[a])} ${thing}. The monkey eats ${NUM[b]}. Tap eat. Then tap how many are left.`;
+// grid cells visited by moves like 'R4', for path boards
+const pathOf = (start, moves) => { const V = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] }, out = [[...start]]; let [x, y] = start;
+  moves.forEach(m => { for (let k = 0; k < +m.slice(1); k++) { x += V[m[0]][0]; y += V[m[0]][1]; out.push([x, y]); } }); return out; };
 const rhymeSay = w => `Feed the monster words that rhyme with ${w}. Tap a picture to hear it.`;
 window.CH_CATALOG = {
   lines: {
@@ -23,12 +26,14 @@ window.CH_CATALOG = {
     keepGoing: ["Not quite. Let's try again.", 'Almost! Try once more.'],
     streak: 'Wow, a streak! Bonus points!',
     bugFound: 'Squish! You found the bug. Now tap the picture that fixes it.',
-    flipTwo: 'Flip two cards. Find two that match.'
+    flipTwo: 'Flip two cards. Find two that match.',
+    mirrorAsk: 'Is it the same both ways?',
+    pairAsk: 'Does everyone have a buddy? Or is one left alone?'
   },
 
   units: {
-    young: ['First steps', 'Little loops and rules', 'Talk to play', 'Words and letters', 'Numbers', 'Bugs and memory'],
-    older: ['Code moves', 'Logic and numbers', 'Talk to code', 'Words and lists', 'Luck, bugs and memory']
+    young: ['First steps', 'Little loops and rules', 'Talk to play', 'Words and letters', 'Numbers', 'Bugs and memory', 'More steps and bugs', 'Loops and patterns', 'Chess and puzzles', 'Rhymes, mirrors and pairs'],
+    older: ['Code moves', 'Logic and numbers', 'Talk to code', 'Words and lists', 'Luck, bugs and memory', 'Predict the path', 'More code', 'Rules', 'Variables']
   },
 
   games: [
@@ -168,6 +173,187 @@ window.CH_CATALOG = {
       say: 'Find the matching pairs. Tap a card to flip it. Then tap a second card. Remember where each picture hides.',
       notes: ['Computers have memory too. They keep things so they can find them later.', 'Stars: 3 for up to 3 wrong flips, 2 for up to 6.'],
       cfg: { pairs: ['🐶', '🐱', '🐰', '🐸'], cols: 4, stars: [3, 6], helpAfter: 6 } },
+
+    /* ---------- Ages 4–6, batch 3: added at the end so earlier scores stay put ---------- */
+    { id: 'A17', tier: 'young', unit: 6, icon: '🪥', title: 'Teeth Time', skill: 'Order of steps', engine: 'order',
+      goal: 'Brush your teeth in the right order.',
+      steps: ['👆 Tap the picture that happens first.', '👆 Then tap the next one, and the next.', 'Wrong box? Tap it to take the card back.'],
+      say: 'Brush your teeth in the right order. Tap the picture that happens first. Then the next one.',
+      notes: ['Same engine as Seed Steps with a new routine.'],
+      cfg: { steps: [{ e: '🧴', say: 'Put toothpaste on the brush.' }, { e: '🪥', say: 'Brush your teeth.' }, { e: '🚰', say: 'Rinse with water.' }, { e: '😁', say: 'Big clean smile!' }], shuffle: [3, 1, 0, 2] } },
+
+    { id: 'A18', tier: 'young', unit: 6, icon: '🐣', title: 'Egg to Hen', skill: 'Order of steps', engine: 'order',
+      goal: 'How does an egg become a hen?',
+      steps: ['👆 Tap the picture that happens first.', '👆 Then tap the next one, and the next.', 'Wrong box? Tap it to take the card back.'],
+      say: 'How does an egg become a hen? Tap the picture that happens first. Then the next one.',
+      notes: ['A life cycle is a sequence with only one right order.'],
+      cfg: { steps: [{ e: '🥚', say: 'An egg.' }, { e: '🐣', say: 'The egg cracks.' }, { e: '🐥', say: 'A chick comes out.' }, { e: '🐔', say: 'It grows into a hen.' }], shuffle: [2, 0, 3, 1] } },
+
+    { id: 'A19', tier: 'young', unit: 6, icon: '🎂', title: 'Cake Steps', skill: 'Order of steps', engine: 'order',
+      goal: 'Bake a cake in five steps.',
+      steps: ['👆 Tap the picture that happens first.', '👆 Then tap the next one, all the way to the party.', 'Wrong box? Tap it to take the card back.'],
+      say: 'Bake a cake in five steps. Tap the picture that happens first. Then the next one, all the way to the party.',
+      notes: ['Five steps instead of four: a longer algorithm to hold in mind.'],
+      cfg: { steps: [{ e: '🥚', say: 'Crack the eggs.' }, { e: '🥣', say: 'Mix it all up.' }, { e: '🔥', say: 'Bake it in the oven.' }, { e: '🕯️', say: 'Put on the candles.' }, { e: '🎂', say: 'Party time!' }], shuffle: [3, 0, 4, 2, 1] } },
+
+    { id: 'A20', tier: 'young', unit: 6, icon: '🐛', title: 'Squish the Bug 2', skill: 'What is a bug?', engine: 'bugSteps',
+      goal: "Find the bug in the robot's steps.",
+      steps: ['👀 Look at the steps the robot does.', '🐛 Tap the step that does not belong.', '👆 Then tap the picture that fixes it.'],
+      say: "Find the bug in the robot's steps. Tap the step that does not belong. Then tap the picture that fixes it.",
+      notes: ['More everyday routines with one wrong step.'],
+      cfg: { rounds: [
+        { title: 'Brush teeth', steps: ['🧴', '🪥', '🍔', '😁'], bug: 2, fix: '🚰', opts: ['🎈', '🚰', '🦖'], say: 'Robo brushes his teeth. Which step is the bug?' },
+        { title: 'Wash hands', steps: ['🚰', '🧼', '🍕', '🧻'], bug: 2, fix: '🫧', opts: ['🫧', '🎸', '🚗'], say: 'Robo washes his hands. Find the bug.' },
+        { title: 'Go to bed', steps: ['🛁', '⚽', '📖', '🛏️'], bug: 1, fix: '🪥', opts: ['🎺', '🦕', '🪥'], say: 'Robo gets ready for bed. Which step is the bug?' } ] } },
+
+    { id: 'A21', tier: 'young', unit: 6, icon: '🐞', title: 'Squish the Bug 3', skill: 'What is a bug?', engine: 'bugSteps',
+      goal: 'Five steps now. Find the sneaky bug.',
+      steps: ['👀 Look at all five steps.', '🐛 One step looks almost right, but it is wrong. Tap it!', '👆 Then tap the picture that fixes it.'],
+      say: 'Five steps now. Find the sneaky bug. One step looks almost right, but it is wrong.',
+      notes: ['Harder: the bug is a close cousin of the right step (salt for sugar, ice for water).'],
+      cfg: { rounds: [
+        { title: 'Make lemonade', steps: ['🍋', '🔪', '🧂', '💧', '🥤'], bug: 2, fix: '🍬', opts: ['🌶️', '🍬', '🧅'], say: 'Robo makes lemonade. Salt or sugar? Find the bug.' },
+        { title: 'Plant a seed', steps: ['🕳️', '🌰', '🧊', '☀️', '🌻'], bug: 2, fix: '💧', opts: ['🔥', '🪨', '💧'], say: 'Robo plants a seed. Which step is the bug?' },
+        { title: 'Wash the car', steps: ['🚘', '🪣', '🧽', '🍫', '✨'], bug: 3, fix: '💦', opts: ['💦', '🍭', '🧸'], say: 'Robo washes the car. Find the bug.' } ] } },
+
+    { id: 'A22', tier: 'young', unit: 7, icon: '🥁', title: 'Repeat Drum', skill: 'First loops', engine: 'loopIntro',
+      goal: 'Use one repeat block to copy the top row.',
+      steps: ['👀 Look at the top row.', '👆 Tap a picture to put it in the loop.', '➕ Set how many times to repeat. Then press Go.'],
+      say: 'Use one repeat block to copy the top row. Put a picture in the loop. Set how many times. Then press go.',
+      notes: ['A loop is a short way to say the same thing again and again. Rounds 3 and 4 repeat a little pattern.'],
+      cfg: { icons: ['🥁', '👏', '🐸', '⭐'], max: 6, rounds: [
+        { body: ['🥁'], n: 4, say: 'Make the robot drum four times.' },
+        { body: ['👏'], n: 3, say: 'Now make it clap three times.' },
+        { body: ['🥁', '👏'], n: 3, say: 'Drum, clap. Drum, clap. Drum, clap. Put two pictures in the loop.' },
+        { body: ['🐸', '🐸', '⭐'], n: 2, say: 'Frog, frog, star. Two times!' } ] } },
+
+    { id: 'A23', tier: 'young', unit: 7, icon: '🚘', title: 'Car Park', skill: 'Loops', engine: 'hopCards',
+      goal: 'Drive the car to the parking spot.',
+      steps: ['👆 Tap an arrow to add a card.', '➕ Tap plus to drive more squares. The dots count them.', '▶ Press Go.'],
+      say: 'Drive the car to the parking spot. Tap an arrow. Tap plus to drive more squares. Then press go.',
+      notes: ['Two cards with big counts: "right 4 times, down 4 times".'],
+      cfg: { slots: 3, maxCount: 4, board: { w: 5, h: 5, start: [0, 0], goal: [4, 4], path: pathOf([0, 0], ['R4', 'D4']), wallIcon: '🌳', hero: '🚘', prize: '🅿️' } } },
+
+    { id: 'A24', tier: 'young', unit: 7, icon: '🏁', title: 'Race Track', skill: 'Loops', engine: 'hopCards',
+      goal: 'Race the car around the track to the flag.',
+      steps: ['👆 Tap an arrow to add a card.', '➕ Tap plus to drive more squares.', '▶ Press Go. You have 3 cards.'],
+      say: 'Race the car around the track to the flag. Tap an arrow. Tap plus to drive more squares. You have three cards.',
+      notes: ['Counts up to 5. Three straight runs = three cards.'],
+      cfg: { slots: 3, maxCount: 5, board: { w: 6, h: 6, start: [0, 5], goal: [5, 2], path: pathOf([0, 5], ['U5', 'R5', 'D2']), wallIcon: '🚧', hero: '🚘', prize: '🏁' } } },
+
+    { id: 'A25', tier: 'young', unit: 7, icon: '🐇', title: 'Hop Hop Hop 2', skill: 'Loops', engine: 'hopCards',
+      goal: 'Get the carrot with only three cards.',
+      steps: ['👆 Tap an arrow to add a card.', '➕ Tap plus to hop more times.', '▶ Press Go.'],
+      say: 'Get the carrot with only three cards. Down, across and up!',
+      notes: ['A U-shaped path: three cards, each repeated.'],
+      cfg: { slots: 3, maxCount: 4, board: { w: 5, h: 5, start: [0, 0], goal: [4, 0], path: pathOf([0, 0], ['D3', 'R4', 'U3']), wallIcon: '🌷', hero: '🐰', prize: '🥕' } } },
+
+    { id: 'A26', tier: 'young', unit: 7, icon: '🚂', title: 'Pattern Train 2', skill: 'Patterns', engine: 'pattern',
+      goal: 'Find the missing car. It can be anywhere!',
+      steps: ['👀 Look at the train. Find the pattern.', '❓ The ? car is missing.', '👆 Tap the car that goes there.'],
+      say: 'Find the missing car. It can be anywhere. Look for the pattern, then tap the car that goes in the gap.',
+      notes: ['Harder patterns (AABB, ABB) and a gap in the middle.'],
+      cfg: { rounds: [
+        { seq: ['🔴', '🔴', '🔵', '🔵', '🔴', '🔴', '🔵'], ans: '🔵', opts: ['🔴', '🔵', '🟢'] },
+        { seq: ['🐶', '🐱', '🐭', '🐶', null, '🐭'], q: 4, ans: '🐱', opts: ['🐭', '🐱', '🐶'] },
+        { seq: ['⭐', '🌙', '🌙', '⭐', '🌙', '🌙', '⭐'], ans: '🌙', opts: ['⭐', '🌙', '☀️'] } ] } },
+
+    { id: 'A27', tier: 'young', unit: 7, icon: '🚃', title: 'Pattern Train 3', skill: 'Patterns', engine: 'pattern',
+      goal: 'Tricky patterns! Find the missing car.',
+      steps: ['👀 Say the pattern out loud.', '❓ Find the gap.', '👆 Tap the car that fits.'],
+      say: 'Tricky patterns! Say the pattern out loud. Then tap the car that fits the gap.',
+      notes: ['ABCB, a gap at the very start, and a five-long pattern.'],
+      cfg: { rounds: [
+        { seq: ['🔴', '🟡', '🔵', '🟡', '🔴', '🟡', '🔵'], ans: '🟡', opts: ['🔴', '🟡', '🔵'] },
+        { seq: [null, '🐸', '🐸', '🐟', '🐸', '🐸'], q: 0, ans: '🐟', opts: ['🐸', '🐟', '🐢'] },
+        { seq: ['🚗', '🚗', '🚌', '🚌', '🚲', '🚗', '🚗'], ans: '🚌', opts: ['🚗', '🚌', '🚲'] } ] } },
+
+    { id: 'A28', tier: 'young', unit: 8, icon: '📍', title: 'Where Will It Land? 2', skill: 'Reading code', engine: 'predict',
+      goal: 'Guess where the bunny will stop.',
+      steps: ['👀 ×3 means do it 3 times.', '👀 Read the arrows, one at a time.', '👆 Tap the square where the bunny stops.'],
+      say: 'Guess where the bunny will stop. Times three means do it three times. Read the arrows, then tap the square.',
+      notes: ['Arrows with counts (→×3) are a first look at loops when reading code.'],
+      cfg: { board: { w: 5, h: 5, start: [0, 4], hero: '🐰' },
+        rounds: [{ p: ['R3', 'U2'] }, { p: ['U4', 'R2', 'D2', 'R1'] }, { p: ['R2', 'U3', 'L1', 'U1', 'R3'] }] } },
+
+    { id: 'A29', tier: 'young', unit: 8, icon: '♜', title: 'Rook Run', skill: 'Chess moves', engine: 'predict',
+      goal: 'The rook slides in straight lines. Where does it stop?',
+      steps: ['♜ A rook goes straight: up, down, left or right.', '👀 →×3 means slide 3 squares right.', '👆 Tap the square where it stops.'],
+      say: 'The rook slides in straight lines. Where does it stop? Read the slides, then tap the square.',
+      notes: ['Chess pieces make movement rules concrete. The rook only moves in straight lines.'],
+      cfg: { winTitle: 'Rook master!', board: { w: 5, h: 5, start: [0, 4], hero: '♜', checker: true },
+        rounds: [{ p: ['R4'] }, { p: ['U3', 'R2'] }, { p: ['R4', 'U4', 'L2', 'D1'] }] } },
+
+    { id: 'A30', tier: 'young', unit: 8, icon: '♝', title: 'Bishop Slide', skill: 'Chess moves', engine: 'predict',
+      goal: 'The bishop slides corner to corner. Where does it stop?',
+      steps: ['♝ A bishop moves on a slant: ↗ ↖ ↘ ↙.', '👀 ↗×2 means two slants up and right.', '👆 Tap the square where it stops.'],
+      say: 'The bishop slides corner to corner. Where does it stop? Read the slants, then tap the square.',
+      notes: ['Diagonal moves change both the row and the column at once.'],
+      cfg: { winTitle: 'Bishop master!', board: { w: 5, h: 5, start: [0, 4], hero: '♝', checker: true },
+        rounds: [{ p: ['UR2'] }, { p: ['UR3', 'DR1'] }, { p: ['UR2', 'UL1', 'UR1', 'DR2'] }] } },
+
+    { id: 'A31', tier: 'young', unit: 8, icon: '♞', title: 'Knight Jump', skill: 'Chess moves', engine: 'predict',
+      goal: 'The knight jumps in an L. Where does it land?',
+      steps: ['♞ A knight jumps 2 squares one way, then 1 square the other way.', '👀 2↑1→ means 2 up, then 1 right.', '👆 Tap the square where it lands.'],
+      say: 'The knight jumps in an L shape. Two squares one way, then one square the other way. Where does it land?',
+      notes: ['The hardest of the chess cards: each jump is two moves combined.'],
+      cfg: { winTitle: 'Knight master!', board: { w: 5, h: 5, start: [0, 4], hero: '♞', checker: true },
+        rounds: [{ p: ['NUR'] }, { p: ['NRU', 'NUR'] }, { p: ['NRU', 'NUR', 'NLU'] }] } },
+
+    { id: 'A32', tier: 'young', unit: 8, icon: '🧩', title: 'Puzzle Path', skill: 'Drag and drop code', engine: 'dragCode',
+      goal: 'Help the puppy get the bone.',
+      steps: ['✋ Drag arrow pieces into the long strip.', '↔ Drag a piece out of the strip to take it away.', '▶ Press Go.'],
+      say: 'Help the puppy get the bone. Drag arrow pieces into the strip. Then press go.',
+      notes: ['Dragging puzzle pieces is how block coding apps like Scratch Junior work. A tap also adds a piece.'],
+      cfg: { max: 8, board: { w: 4, h: 4, start: [0, 3], goal: [3, 0], walls: [[1, 3], [2, 2], [1, 1]], wallIcon: '🌵', hero: '🐶', prize: '🦴' } } },
+
+    { id: 'A33', tier: 'young', unit: 8, icon: '⛽', title: 'Puzzle Path 2', skill: 'Drag and drop code', engine: 'dragCode',
+      goal: 'Drive the car to the fuel pump.',
+      steps: ['✋ Drag arrow pieces into the strip.', '↔ You can drop a piece between two others.', '▶ Press Go.'],
+      say: 'Drive the car to the fuel pump. Drag arrow pieces into the strip. Then press go.',
+      notes: ['A bigger board. Pieces can be dropped between other pieces to fix the order.'],
+      cfg: { max: 10, winTitle: 'Full tank!', board: { w: 5, h: 5, start: [0, 4], goal: [4, 0], walls: [[1, 4], [1, 3], [3, 1], [3, 2], [2, 0]], wallIcon: '🌳', hero: '🚘', prize: '⛽' } } },
+
+    { id: 'A34', tier: 'young', unit: 9, icon: '👾', title: 'Rhyme Monster 2', skill: 'Rhyming words', engine: 'rhyme',
+      goal: 'Feed the monster rhymes. Some are tricky!',
+      steps: ['👂 Tap a picture to hear its word.', '🤔 Listen! Some words look alike but do not rhyme.', '👾 Feed the monster every rhyme.'],
+      say: 'Feed the monster rhymes. Some are tricky! Listen carefully. Some words look alike but do not rhyme.',
+      notes: ['Easy rounds (hen, frog) mixed with tricky ones: bear and ear look alike but do not rhyme; shoe, two and blue rhyme with different spellings.'],
+      cfg: { say: ['hen', 'ten', 'pen', 'pig', 'bear', 'chair', 'pear', 'square', 'ear', 'frog', 'log', 'fish', 'shoe', 'two', 'blue', 'canoe', 'toe', 'boat', 'sock'],
+        rounds: [
+          { target: { e: '🐔', w: 'hen' }, say: rhymeSay('hen'), items: [{ e: '🔟', w: 'ten', r: 1 }, { e: '🐶', w: 'dog' }, { e: '🖊️', w: 'pen', r: 1 }, { e: '🌞', w: 'sun' }, { e: '🐷', w: 'pig' }, { e: '🎩', w: 'hat' }] },
+          { target: { e: '🐻', w: 'bear' }, say: rhymeSay('bear'), items: [{ e: '🪑', w: 'chair', r: 1 }, { e: '👂', w: 'ear' }, { e: '🍐', w: 'pear', r: 1 }, { e: '⭐', w: 'star' }, { e: '🟥', w: 'square', r: 1 }, { e: '🚗', w: 'car' }] },
+          { target: { e: '🐸', w: 'frog' }, say: rhymeSay('frog'), items: [{ e: '🪵', w: 'log', r: 1 }, { e: '🐟', w: 'fish' }, { e: '🐶', w: 'dog', r: 1 }, { e: '🐱', w: 'cat' }, { e: '🐝', w: 'bee' }, { e: '🌞', w: 'sun' }] },
+          { target: { e: '👟', w: 'shoe' }, say: rhymeSay('shoe'), items: [{ e: '2️⃣', w: 'two', r: 1 }, { e: '🦶', w: 'toe' }, { e: '🔵', w: 'blue', r: 1 }, { e: '⛵', w: 'boat' }, { e: '🛶', w: 'canoe', r: 1 }, { e: '🧦', w: 'sock' }] } ] } },
+
+    { id: 'A35', tier: 'young', unit: 9, icon: '👹', title: 'Rhyme Monster 3', skill: 'Rhyming words', engine: 'rhyme',
+      goal: 'More rhymes for the monster. Listen closely!',
+      steps: ['👂 Tap a picture to hear its word.', '🤔 Rhymes sound the same at the end, not the start.', '👾 Feed the monster every rhyme.'],
+      say: 'More rhymes for the monster. Listen closely. Rhymes sound the same at the end, not at the start.',
+      notes: ['Traps: one does not rhyme with bone; kiwi starts like kite but does not rhyme.'],
+      cfg: { say: ['cake', 'snake', 'lake', 'kite', 'bone', 'phone', 'stone', 'cone', 'one', 'ball', 'light', 'night', 'white', 'kiwi'],
+        rounds: [
+          { target: { e: '🎂', w: 'cake' }, say: rhymeSay('cake'), items: [{ e: '🐍', w: 'snake', r: 1 }, { e: '🐱', w: 'cat' }, { e: '🏞️', w: 'lake', r: 1 }, { e: '🪁', w: 'kite' }, { e: '🥤', w: 'cup' }, { e: '🐝', w: 'bee' }] },
+          { target: { e: '🦴', w: 'bone' }, say: rhymeSay('bone'), items: [{ e: '📱', w: 'phone', r: 1 }, { e: '1️⃣', w: 'one' }, { e: '🪨', w: 'stone', r: 1 }, { e: '🐶', w: 'dog' }, { e: '🍦', w: 'cone', r: 1 }, { e: '⚽', w: 'ball' }] },
+          { target: { e: '🪁', w: 'kite' }, say: rhymeSay('kite'), items: [{ e: '💡', w: 'light', r: 1 }, { e: '🥝', w: 'kiwi' }, { e: '🌃', w: 'night', r: 1 }, { e: '🐱', w: 'cat' }, { e: '⚪', w: 'white', r: 1 }, { e: '🌙', w: 'moon' }] } ] } },
+
+    { id: 'A36', tier: 'young', unit: 9, icon: '🪞', title: 'Mirror Words', skill: 'Palindromes', engine: 'mirrorWord',
+      goal: 'Is the word the same backwards?',
+      steps: ['🪞 Tap Flip it. The word turns around.', '👀 Look at both rows. Do the colors match?', '👆 Tap Same or Different.'],
+      say: 'Is the word the same backwards? Tap flip it. Then look at both rows. Tap same or different.',
+      notes: ['A word that reads the same both ways is a palindrome, like mom or 121. The colored letters make it easy to compare.'],
+      cfg: { rounds: [{ w: 'mom', say: 'mom' }, { w: 'cat', say: 'cat' }, { w: 'dad', say: 'dad' }, { w: 'sun', say: 'sun' }, { w: 'wow', say: 'wow' }, { w: '121', say: 'one two one' }] } },
+
+    { id: 'A37', tier: 'young', unit: 9, icon: '👯', title: 'Buddy Pairs', skill: 'Odd and even', engine: 'pairUp',
+      goal: 'Pair them up. Does everyone get a buddy?',
+      steps: ['👆 Tap two to make a pair.', '🔁 Keep pairing until you can not.', '👆 Even: everyone has a buddy. Odd: one is left alone.'],
+      say: 'Pair them up. Tap two to make a pair. If everyone has a buddy, it is even. If one is left alone, it is odd.',
+      notes: ['Even and odd, shown with pairs. The same idea is behind the Odd or Even Gate for older kids.'],
+      cfg: { rounds: [
+        { n: 4, e: '🧦', name: 'sock', say: 'Help the socks find a buddy. Tap two socks to make a pair.' },
+        { n: 5, e: '🐧', name: 'penguin', say: 'Five penguins. Tap two to make a pair.' },
+        { n: 6, e: '🍪', name: 'cookie', say: 'Six cookies. Pair them up.' },
+        { n: 7, e: '🦆', name: 'duck', say: 'Seven ducks. Pair them up.' } ] } },
 
     /* ---------- Ages 7–9 ---------- */
     { id: 'B1', tier: 'older', unit: 0, icon: '🔁', title: 'Loop Maze', skill: 'Loops', engine: 'codeGrid',
@@ -341,7 +527,133 @@ window.CH_CATALOG = {
       cfg: { rounds: [
         { goal: 10, lines: [{ k: 'set', v: 2 }, { k: 'add', v: 4 }, { k: 'add', v: 3 }], bug: 2, opts: [{ k: 'add', v: 3 }, { k: 'add', v: 4 }, { k: 'double' }], fix: 1 },
         { goal: 12, lines: [{ k: 'set', v: 3 }, { k: 'rep', n: 2, v: 3 }], bug: 1, opts: [{ k: 'rep', n: 4, v: 3 }, { k: 'rep', n: 3, v: 3 }, { k: 'rep', n: 2, v: 4 }], fix: 1 },
-        { goal: 14, lines: [{ k: 'set', v: 5 }, { k: 'double' }, { k: 'add', v: 2 }], bug: 2, opts: [{ k: 'double' }, { k: 'add', v: 3 }, { k: 'add', v: 4 }], fix: 2 } ] } }
+        { goal: 14, lines: [{ k: 'set', v: 5 }, { k: 'double' }, { k: 'add', v: 2 }], bug: 2, opts: [{ k: 'double' }, { k: 'add', v: 3 }, { k: 'add', v: 4 }], fix: 2 } ] } },
+    /* ---------- Ages 7–8, batch 3: added at the end so earlier scores stay put ---------- */
+    { id: 'B22', tier: 'older', unit: 5, icon: '🤖', title: 'Robot Steps', skill: 'Predicting turns', engine: 'predict',
+      goal: 'Where will the robot stop?',
+      steps: ['🔺 The red arrow shows which way the robot faces.', '⬆ moves forward. ↻ and ↺ turn on the spot.', '👆 Tap the square where it stops.'],
+      say: 'Where will the robot stop? Forward moves the way it faces. The turn blocks turn it on the spot. Tap the square where it stops.',
+      notes: ['Turns are relative to the robot, so you have to track which way it faces.'],
+      cfg: { winTitle: 'Robot reader!', board: { w: 5, h: 5, start: [0, 4], heading: 0, hero: '🤖' },
+        rounds: [{ p: ['F2', 'RT', 'F3'] }, { p: ['F3', 'RT', 'F2', 'RT', 'F1'] }, { p: ['RT', 'F4', 'LT', 'F2', 'LT', 'F1'] }] } },
+
+    { id: 'B23', tier: 'older', unit: 5, icon: '🔁', title: 'Loop Landing', skill: 'Predicting loops', engine: 'predict',
+      goal: 'Where will the frog stop after the loops?',
+      steps: ['🔁 Everything inside the loop happens that many times.', '👀 Trace it one step at a time.', '👆 Tap the square where it stops.'],
+      say: 'Where will the frog stop after the loops? Everything inside a loop happens that many times. Then tap the square.',
+      notes: ['Reading a loop means unrolling it in your head.'],
+      cfg: { winTitle: 'Loop reader!', board: { w: 5, h: 5, start: [0, 4], hero: '🐸' },
+        rounds: [{ prog: { main: [{ loop: 3, body: ['R', 'U'] }] } }, { prog: { main: ['U', { loop: 2, body: ['R2', 'U'] }, 'L2'] } }, { prog: { main: [{ loop: 2, body: ['U2', 'R'] }, 'D3'] } }] } },
+
+    { id: 'B24', tier: 'older', unit: 5, icon: '⭐', title: 'Block Landing', skill: 'Predicting functions', engine: 'predict',
+      goal: 'Where will the kangaroo stop? Read the ⭐ block first.',
+      steps: ['⭐ The star block is a list of moves, shown at the top.', '🔁 Loops repeat what is inside.', '👆 Tap the square where it stops.'],
+      say: 'Where will the kangaroo stop? Read the star block first. Every star in the program does those moves.',
+      notes: ['Functions plus loops: the most code to trace in one go.'],
+      cfg: { winTitle: 'Block reader!', board: { w: 6, h: 6, start: [0, 5], hero: '🦘' },
+        rounds: [{ prog: { fn: ['R', 'U'], main: ['*', '*', 'R2', '*'] } }, { prog: { fn: ['U2', 'R'], main: [{ loop: 2, body: ['*'] }, 'D', '*'] } }, { prog: { fn: ['R', 'D'], main: ['U5', '*', { loop: 2, body: ['*', 'U'] }] } }] } },
+
+    { id: 'B25', tier: 'older', unit: 6, icon: '⭐', title: 'Make-a-Block 2', skill: 'Functions', engine: 'codeGrid',
+      goal: 'Climb over two tall cactuses with only 12 blocks.',
+      steps: ['👆 Tap the green box. Build one climb over a cactus.', '⭐ Use your star block for each cactus.', '▶ Press Run.'],
+      say: 'Climb over two tall cactuses with only twelve blocks. Build one climb in the green box. Then use your star block for each cactus.',
+      notes: ['The climb is up, up, right, right, down, down. Without a block the shortest program is 14.'],
+      cfg: { max: 12, func: true, solution: { fn: ['U', 'U', 'R', 'R', 'D', 'D'], main: ['R', '*', 'R', 'R', '*', 'R'] }, board: { w: 9, h: 3, start: [0, 2], goal: [8, 2], walls: [[2, 1], [2, 2], [6, 1], [6, 2], [4, 0, '☁️']], wallIcon: '🌵', hero: '🦘', prize: '🏁', bw: 420 } } },
+
+    { id: 'B26', tier: 'older', unit: 6, icon: '⭐', title: 'Make-a-Block 3', skill: 'Functions', engine: 'codeGrid',
+      goal: 'Climb the stairs with only 8 blocks.',
+      steps: ['👀 Find the part of the path that repeats.', '⭐ Put it in the green box.', '▶ Use the star block, then press Run.'],
+      say: 'Climb the stairs with only eight blocks. Find the part of the path that repeats. Put it in your star block.',
+      notes: ['The step is right, right, up. The stairs are joined by an extra up, so a plain loop does not fit.'],
+      cfg: { max: 8, func: true, solution: { fn: ['R', 'R', 'U'], main: ['*', 'U', '*', 'U', '*'] }, board: { w: 7, h: 7, start: [0, 6], goal: [6, 1], path: [[0, 6], [1, 6], [2, 6], [2, 5], [2, 4], [3, 4], [4, 4], [4, 3], [4, 2], [5, 2], [6, 2], [6, 1]], wallIcon: '🧱', hero: '🐐', prize: '🏔️', bw: 360 } } },
+
+    { id: 'B27', tier: 'older', unit: 6, icon: '✏️', title: 'Draw Bot 2', skill: 'Drawing with code', engine: 'turtle',
+      goal: 'Draw three new shapes.',
+      steps: ['⬆ Forward draws a line to the next dot.', '↻ and ↺ turn the robot on the spot.', '▶ Press Draw. Your lines must cover the dotted shape.'],
+      say: 'Draw three new shapes: a box, an L, and a zigzag. Forward draws a line. The turn buttons turn the robot.',
+      notes: ['A rectangle (a loop of two different sides), an L, and a zigzag that alternates left and right turns.'],
+      cfg: { n: 5, shapes: [{ start: [1, 3], dir: 0, sol: 'FFRFFFRFFRFFFR' }, { start: [1, 0], dir: 2, sol: 'FFFLFF' }, { start: [0, 3], dir: 1, sol: 'FLFRFLFRFLF' }] } },
+
+    { id: 'B28', tier: 'older', unit: 6, icon: '🗣️', title: 'Talk to Draw', skill: 'Voice coding', engine: 'turtle',
+      goal: 'Draw the shape with your voice.',
+      steps: ['🎤 Tap the microphone.', '🗣️ Say forward, left or right. Each word adds a block.', '▶ Say go to draw. Say undo to remove a block.'],
+      say: 'Draw the shape with your voice. Say forward, left, or right. Then say go to draw it.',
+      notes: ['Voice works on a normal web page in Chrome, Edge or Safari. The word buttons work everywhere.'],
+      cfg: { n: 5, max: 16, shapes: [{ start: [1, 3], dir: 0, sol: 'FRFRFRF' }, { start: [0, 3], dir: 0, sol: 'FRFLFRF' }],
+        words: { F: { label: 'forward', glyph: '⬆', hear: ['go forward', 'move forward', 'forward', 'forwards', 'straight', 'for word', 'four word'] },
+                 R: { label: 'right', glyph: '↻', hear: ['turn right', 'right', 'write', 'rite', 'all right', 'alright'] },
+                 L: { label: 'left', glyph: '↺', hear: ['turn left', 'left', 'lift'] },
+                 GO: { label: 'go', glyph: '▶', hear: ['go', 'run', 'start', 'draw'] },
+                 UNDO: { label: 'undo', glyph: '⌫', hear: ['undo', 'oops', 'delete', 'back'] } } } },
+
+    { id: 'B29', tier: 'older', unit: 7, icon: '🧺', title: 'Sorting Machine 2', skill: 'If / else', engine: 'sorter',
+      goal: 'Sort the shapes. One IF, one ELSE.',
+      steps: ['👀 Read the goal at the top.', '👆 Pick the condition for the left basket.', '▶ Press Run machine.'],
+      say: 'Sort the shapes. Read the goal. Pick the condition for the left basket. Then run the machine.',
+      notes: ['New shapes and three puzzles with one condition each.'],
+      cfg: { items: [['circle', 'yellow'], ['square', 'red'], ['star', 'yellow'], ['circle', 'blue'], ['square', 'yellow'], ['star', 'red'], ['circle', 'red'], ['square', 'blue']],
+        goals: [{ text: 'Goal: every yellow shape goes in the LEFT basket.', k: 'color', v: 'yellow' }, { text: 'Goal: every square goes in the LEFT basket.', k: 'shape', v: 'square' }, { text: 'Goal: every circle goes in the LEFT basket.', k: 'shape', v: 'circle' }] } },
+
+    { id: 'B30', tier: 'older', unit: 7, icon: '🗃️', title: 'Sorting Machine 3', skill: 'If / else if', engine: 'sorter',
+      goal: 'Three baskets: IF, ELSE IF, ELSE.',
+      steps: ['👀 Read the goal. Order matters!', '👆 Pick a condition for IF and one for ELSE IF.', '▶ Press Run machine. IF is checked first.'],
+      say: 'Three baskets. Pick a condition for if, and one for else if. The machine checks if first, so order matters.',
+      notes: ['Two rules in a row. A red star matches both "star" and "red": the first rule wins.'],
+      cfg: { two: true, items: [['star', 'red'], ['circle', 'red'], ['square', 'blue'], ['star', 'blue'], ['circle', 'yellow'], ['square', 'red'], ['circle', 'blue'], ['star', 'yellow'], ['square', 'yellow']],
+        goals: [
+          { text: 'Stars go LEFT. Other red shapes go in the MIDDLE. Everything else goes RIGHT.', a: { k: 'shape', v: 'star' }, b: { k: 'color', v: 'red' } },
+          { text: 'Blue shapes go LEFT. Other circles go in the MIDDLE. Everything else goes RIGHT.', a: { k: 'color', v: 'blue' }, b: { k: 'shape', v: 'circle' } },
+          { text: 'Squares go LEFT. Other yellow shapes go in the MIDDLE. Everything else goes RIGHT.', a: { k: 'shape', v: 'square' }, b: { k: 'color', v: 'yellow' } } ] } },
+
+    { id: 'B31', tier: 'older', unit: 7, icon: '🕵️', title: 'Odd or Even Detective', skill: 'Finding the rule', engine: 'ruleGate',
+      goal: 'Work out the secret rule from the examples.',
+      steps: ['👀 Look at the YES and NO examples.', '👆 Build the rule that fits all of them.', '▶ Press Run gate to test new numbers.'],
+      say: 'Work out the secret rule from the examples. Look at the yes and no numbers. Build a rule that fits them all.',
+      notes: ['Rules from examples: even, odd, then "ends in 5" (13 is odd but does not end in 5).'],
+      cfg: { templates: ['even', 'odd', 'ends'], range: [0, 9], start: 0, rounds: [
+        { yes: [4, 10, 22], no: [3, 15], test: [8, 13, 30, 41, 56, 77], ans: { t: 'even' } },
+        { yes: [7, 19, 31], no: [2, 24], test: [5, 12, 45, 60, 99, 100], ans: { t: 'odd' } },
+        { yes: [5, 15, 105], no: [10, 13, 52], test: [25, 35, 50, 57, 65, 91], ans: { t: 'ends', n: 5 } } ] } },
+
+    { id: 'B32', tier: 'older', unit: 7, icon: '➕', title: 'Plus or Minus Gate', skill: 'Positive and negative', engine: 'ruleGate',
+      goal: 'Find the rule: bigger or smaller than a number.',
+      steps: ['👀 Numbers below zero have a minus sign, like -3.', '👆 Pick more than or less than, and set the number.', '▶ Press Run gate.'],
+      say: 'Find the rule. Numbers below zero have a minus sign. Pick more than or less than, and set the number.',
+      notes: ['Positive means more than 0. Zero is neither positive nor negative, so it goes to NO in the first two rounds.'],
+      cfg: { templates: ['gt', 'lt'], range: [-10, 20], start: 0, rounds: [
+        { yes: [3, 8, 1], no: [-2, 0, -7], test: [5, -1, 12, 0, -9, 2], ans: { t: 'gt', n: 0 } },
+        { yes: [-4, -1, -10], no: [0, 3, 6], test: [-3, 7, 0, -8, 2, -6], ans: { t: 'lt', n: 0 } },
+        { yes: [12, 15, 30], no: [9, 4, -2], test: [10, 11, 8, 20, -5, 9], ans: { t: 'gt', n: 9 } } ] } },
+
+    { id: 'B33', tier: 'older', unit: 7, icon: '✖️', title: 'Times Table Gate', skill: 'Multiples', engine: 'ruleGate',
+      goal: 'Find the times table that lets numbers through.',
+      steps: ['👀 Look at the YES numbers. Which times table are they all in?', '👆 Set the number.', '▶ Press Run gate.'],
+      say: 'Find the times table that lets numbers through. Which times table are all the yes numbers in? Then run the gate.',
+      notes: ['Multiples: the NO examples rule out the easy guess (6 and 10 are in the 2 times table, not the 4 times table).'],
+      cfg: { templates: ['mult'], range: [2, 10], start: 2, rounds: [
+        { yes: [4, 8, 12], no: [6, 10], test: [16, 20, 14, 24, 18, 2], ans: { t: 'mult', n: 4 } },
+        { yes: [3, 9, 15], no: [4, 10], test: [6, 21, 7, 12, 25, 30], ans: { t: 'mult', n: 3 } },
+        { yes: [10, 25, 35], no: [12, 8], test: [5, 40, 45, 52, 15, 7], ans: { t: 'mult', n: 5 } } ] } },
+
+    { id: 'B34', tier: 'older', unit: 8, icon: '📦', title: 'Variable Boxes', skill: 'Variables', engine: 'vars',
+      goal: 'Two or three boxes now. What is in the box at the end?',
+      steps: ['👀 Read the code line by line.', '🧠 Keep track of every box.', '👆 Tap your answer, then watch the boxes change.'],
+      say: 'Two or three boxes now. Read the code line by line, and keep track of every box. Then tap your answer.',
+      notes: ['Several variables, a loop that doubles, and a swap using a spare box.'],
+      cfg: { rounds: [
+        { lines: [['set', 'a', 3], ['set', 'b', 5], ['addv', 'a', 'b']], ask: 'a', opts: [8, 5, 3] },
+        { lines: [['set', 'x', 2], ['rep', 3, [['mul', 'x', 2]]]], ask: 'x', opts: [8, 16, 6] },
+        { lines: [['set', 'a', 4], ['set', 'b', 7], ['copy', 't', 'a'], ['copy', 'a', 'b'], ['copy', 'b', 't']], ask: 'b', opts: [7, 4, 11] } ] } },
+
+    { id: 'B35', tier: 'older', unit: 8, icon: '🧮', title: 'Variable Boxes 2', skill: 'Variables + if', engine: 'vars',
+      goal: 'Loops, ifs and counters. What is in the box at the end?',
+      steps: ['👀 Read the code line by line.', '🔁 Inside a loop, every line runs again.', '❓ An if line only runs its inside when the test is true.'],
+      say: 'Loops, ifs and counters. Inside a loop every line runs again. An if line only runs its inside when the test is true.',
+      notes: ['A score that gets cut down by an if, a running total, and two variables that change each other.'],
+      cfg: { rounds: [
+        { lines: [['set', 'score', 0], ['rep', 4, [['add', 'score', 5]]], ['if', ['score', '>', 15], [['add', 'score', -10]]]], ask: 'score', opts: [20, 10, 15] },
+        { lines: [['set', 'n', 1], ['set', 'total', 0], ['rep', 4, [['addv', 'total', 'n'], ['add', 'n', 1]]]], ask: 'total', opts: [10, 4, 15] },
+        { lines: [['set', 'x', 10], ['set', 'y', 3], ['rep', 2, [['subv', 'x', 'y'], ['add', 'y', 1]]]], ask: 'x', opts: [3, 4, 1] } ] } }
   ]
 };
 })();

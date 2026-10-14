@@ -153,7 +153,7 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 .wagon.q .cargo{background:none;color:var(--grape);font-family:var(--display);font-weight:800}
 .rails{height:10px;margin-top:-4px;border-top:3px solid #8C97B3;background:repeating-linear-gradient(90deg,#B9A58A 0 6px,transparent 6px 16px)}
 /* A3 seed steps */
-.slots,.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}
+.slots,.cards{display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:8px;width:100%}
 .slot{aspect-ratio:1;border:3px dashed var(--line);border-radius:16px;display:grid;place-items:center;font-size:36px;position:relative;background:var(--soft)}
 .slot b{position:absolute;top:4px;left:8px;font-family:var(--display);font-size:16px;color:var(--muted)}
 .slot.full{border-style:solid;border-color:var(--grass);background:var(--card)}
@@ -192,6 +192,7 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 .chip[aria-pressed="true"]{border-color:var(--grape);background:#EEEAFF}
 .chip svg{width:18px;height:18px}
 .baskets{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.baskets.three{grid-template-columns:1fr 1fr 1fr;gap:6px}
 .basket{border:3px solid var(--line);border-radius:16px;min-height:96px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .basket h4{margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .basket .in{display:flex;flex-wrap:wrap;gap:4px}
@@ -203,9 +204,10 @@ main{max-width:1100px;margin:0 auto;padding-block:24px 64px;padding-inline:16px}
 .pairs i.left{color:var(--coral)}
 
 /* B4 tower counter: light grid lines every block, numbered on the left */
-.towerwrap{width:100%;display:grid;grid-template-columns:18px 1fr;gap:4px;align-items:end}
-.axis{display:flex;flex-direction:column;height:144px;font-size:10px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
-.axis span{height:16px;line-height:16px;text-align:right}
+.towerwrap{position:relative;width:100%;padding-left:24px}
+.axis{position:absolute;left:0;bottom:3px;width:20px;height:144px;font-size:11px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.axis span{position:absolute;right:0;bottom:calc(var(--k) * 16px - 7px);height:14px;line-height:14px;text-align:right}
+.axis span::after{content:"";position:absolute;right:-6px;top:6px;width:4px;height:2px;background:#C9D6EA}
 .towers{display:flex;gap:6px;align-items:flex-end;justify-content:center;height:147px;width:100%;border-bottom:3px solid var(--line);
   background-image:repeating-linear-gradient(to top,transparent 0 15px,#E3ECF8 15px 16px);background-position:bottom;background-origin:content-box}
 .tw{position:relative;flex:1 1 0;max-width:32px;min-width:0;height:100%}
@@ -519,6 +521,51 @@ textarea.field{resize:vertical;font-size:13px}
 .tprow.sel{border-color:var(--grape);background:#F3F0FF}.tprow.done{opacity:.4}
 .tphead{height:auto;min-height:32px}
 
+/* ---- v3.3 ---- */
+.codepanel .in2{padding-left:52px}.codepanel .in3{padding-left:74px}
+.board.chk .cell{background:#F3E3C7;border-color:transparent}
+.board.chk .cell.dk{background:#B98A5E}
+.board.chk .sprite span{color:var(--ink);text-shadow:0 0 3px #fff,0 0 6px #fff,0 0 10px #fff;font-size:115%}
+.board.chk .cell.picked{background:#FFE9A8}.board.chk .cell.right{background:#BFF0D4}.board.chk .cell.hint{background:#FFE9A8}
+.fnshow:empty{display:none}
+.kfn{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-weight:800;border:3px solid var(--grass);background:#E8F8EF;border-radius:14px;padding:6px 10px}
+.kloop.pl{gap:6px;padding:4px 8px;font-weight:800;border-width:3px}
+.kloop.pl.now{box-shadow:0 0 0 3px var(--sunDk)}
+.lrow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:52px;width:100%;padding:6px;border-radius:14px}
+.lrow.target{background:#F3F0FF}
+.lrow.perform{background:#EAF9F0}
+.li{font-size:clamp(26px,8vw,36px);line-height:1.2;border-radius:10px;padding:0 2px}
+.li.now{background:var(--sun)}
+.loopmaker{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;border:3px solid var(--sun);background:#FFF6DC;border-radius:16px;padding:10px;font-weight:800}
+.lslots{display:flex;gap:6px}
+.lslot{width:56px;height:56px;border-radius:14px;border:3px dashed var(--sunDk);background:var(--card);font-size:30px;padding:0}
+.lslot.full{border-style:solid}
+.mwrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.mwrow.back{padding-top:10px;border-top:3px dashed var(--line)}
+.mwt{width:clamp(48px,14vw,64px);height:clamp(56px,16vw,72px);border-radius:14px;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:clamp(30px,9vw,42px);line-height:1;color:#fff;background:var(--c);box-shadow:0 4px 0 rgba(0,0,0,.18)}
+.choice.wide{min-width:0;height:auto;padding:12px 16px;font-size:18px;font-weight:800}
+.pfield{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:70px;width:100%}
+.pitem{width:64px;height:64px;border-radius:16px;border:2px solid var(--line);border-bottom-width:5px;background:var(--card);font-size:36px;padding:0}
+.pitem.sel{border-color:var(--grape);background:#F3F0FF;transform:translateY(-4px)}
+.pairs-out{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:52px}
+.pbox{font-size:30px;border:3px solid var(--grass);background:#EAF9F0;border-radius:14px;padding:2px 8px;letter-spacing:2px}
+.dstrip{display:flex;flex-wrap:wrap;gap:4px 0;align-items:center;width:100%;min-height:76px;padding:10px 14px;border:3px dashed var(--line);border-radius:16px;background:var(--soft)}
+.dstrip.empty::before{content:"Drop pieces here";color:var(--muted);font-weight:700;font-size:14px}
+.dstrip.over{border-color:var(--grape);background:#F3F0FF}
+.dpal{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.pz{position:relative;display:inline-grid;place-items:center;width:56px;height:52px;margin-right:12px;border-radius:10px;background:var(--sea);box-shadow:0 4px 0 var(--seaDk);color:#fff;font-family:var(--display);font-weight:800;font-size:28px;touch-action:none;user-select:none;cursor:grab}
+.pz::after{content:"";position:absolute;right:-10px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:inherit}
+.pz.in{background:var(--grape);box-shadow:0 4px 0 var(--grapeDk)}
+.pz.now{background:var(--sun);color:var(--ink)}.pz.bad{background:var(--coral)}
+.pz.ghost{position:fixed;z-index:60;pointer-events:none;transform:translate(-50%,-50%) scale(1.1);opacity:.9}
+.dhint{text-align:center;margin:0}
+.vboxes{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.vbox{display:grid;justify-items:center;border:3px solid var(--sun);background:#FFF6DC;border-radius:14px;padding:4px 14px;min-width:70px}
+.vbox small{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;color:var(--muted)}
+.vbox b{font-family:var(--display);font-size:30px;font-variant-numeric:tabular-nums;line-height:1.1}
+.basket.ex{min-height:0}.basket.ex h4{font-size:12px}
+.rparam{display:flex;align-items:center;gap:8px}
+
 @media (prefers-reduced-motion: reduce){
   *{animation:none!important;transition:none!important}
 }
@@ -526,7 +573,7 @@ textarea.field{resize:vertical;font-size:13px}
 
 <header class="top">
   <div class="topin">
-    <div class="brand"><span class="logo"><i></i><i></i><i></i><i></i></span>Code Hoppers <span class="tag">Prototype v3.2</span></div>
+    <div class="brand"><span class="logo"><i></i><i></i><i></i><i></i></span>Code Hoppers <span class="tag">Prototype v3.3</span></div>
     <div class="topright">
       <span class="chipbtn timer" id="timer" aria-live="polite">⏱ 15:00</span>
       <button class="chipbtn" id="whoBtn" type="button"></button>
@@ -566,4 +613,6 @@ textarea.field{resize:vertical;font-size:13px}
 <script src="js/engines/voice.js"></script>
 <script src="js/engines/words.js"></script>
 <script src="js/engines/lists.js"></script>
+<script src="js/engines/more.js"></script>
+<script src="js/engines/rules.js"></script>
 <script src="js/app.js"></script>
