@@ -391,7 +391,8 @@ for (const id of ['A28', 'A29', 'A30', 'A31', 'B22', 'B23', 'B24']) {
   for (let rd = 0; rd < 3; rd++) { const n = await p.evaluate(id => document.querySelector(`#card-${id} .play`).__end(), id); endsSeen[id].push(n.join(',')); const k = await stepsOf(id); await clickCells(id); await wait(400 * k + 1800); }
   await stars(id, 3);
 }
-check('chess pieces land where expected', endsSeen.A29.join(' ') === '4,4 2,1 2,1' && endsSeen.A30.join(' ') === '2,2 4,2 4,2' && endsSeen.A31.join(' ') === '1,2 3,1 1,0', JSON.stringify(endsSeen));
+check('chess pieces land where expected', endsSeen.A29.join(' ') === '4,4 2,1 2,2' && endsSeen.A30.join(' ') === '2,2 4,2 3,1' && endsSeen.A31.join(' ') === '1,2 3,1 1,0', JSON.stringify(endsSeen));
+check('no round lands on the same square as the round before', Object.values(endsSeen).every(e => e.every((v, i) => i === 0 || v !== e[i - 1])), JSON.stringify(endsSeen));
 check('turning robot, loops and blocks land where expected', endsSeen.B22.join(' ') === '3,2 2,2 3,2' && endsSeen.B23.join(' ') === '3,1 2,1 2,3' && endsSeen.B24.join(' ') === '5,2 3,0 3,1', JSON.stringify(endsSeen));
 check('chess board is checkered', await p.evaluate(() => { location.hash = 'A29'; return true; }) && (await (async () => { await p.waitForSelector('#card-A29 .board.chk'); return p.locator('#card-A29 .cell.dk').count(); })()) === 12);
 // Puzzle Path: real drag and drop

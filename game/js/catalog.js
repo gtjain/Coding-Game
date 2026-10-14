@@ -274,7 +274,7 @@ window.CH_CATALOG = {
       say: 'Guess where the bunny will stop. Times three means do it three times. Read the arrows, then tap the square.',
       notes: ['Arrows with counts (→×3) are a first look at loops when reading code.'],
       cfg: { board: { w: 5, h: 5, start: [0, 4], hero: '🐰' },
-        rounds: [{ p: ['R3', 'U2'] }, { p: ['U4', 'R2', 'D2', 'R1'] }, { p: ['R2', 'U3', 'L1', 'U1', 'R3'] }] } },
+        rounds: [{ p: ['R3', 'U2'] }, { p: ['U4', 'R2', 'D1', 'R1'] }, { p: ['R2', 'U3', 'L1', 'U1', 'R3'] }] } },
 
     { id: 'A29', tier: 'young', unit: 8, icon: '♜', title: 'Rook Run', skill: 'Chess moves', engine: 'predict',
       goal: 'The rook slides in straight lines. Where does it stop?',
@@ -282,7 +282,7 @@ window.CH_CATALOG = {
       say: 'The rook slides in straight lines. Where does it stop? Read the slides, then tap the square.',
       notes: ['Chess pieces make movement rules concrete. The rook only moves in straight lines.'],
       cfg: { winTitle: 'Rook master!', board: { w: 5, h: 5, start: [0, 4], hero: '♜', checker: true },
-        rounds: [{ p: ['R4'] }, { p: ['U3', 'R2'] }, { p: ['R4', 'U4', 'L2', 'D1'] }] } },
+        rounds: [{ p: ['R4'] }, { p: ['U3', 'R2'] }, { p: ['R4', 'U4', 'L2', 'D2'] }] } },
 
     { id: 'A30', tier: 'young', unit: 8, icon: '♝', title: 'Bishop Slide', skill: 'Chess moves', engine: 'predict',
       goal: 'The bishop slides corner to corner. Where does it stop?',
@@ -290,7 +290,7 @@ window.CH_CATALOG = {
       say: 'The bishop slides corner to corner. Where does it stop? Read the slants, then tap the square.',
       notes: ['Diagonal moves change both the row and the column at once.'],
       cfg: { winTitle: 'Bishop master!', board: { w: 5, h: 5, start: [0, 4], hero: '♝', checker: true },
-        rounds: [{ p: ['UR2'] }, { p: ['UR3', 'DR1'] }, { p: ['UR2', 'UL1', 'UR1', 'DR2'] }] } },
+        rounds: [{ p: ['UR2'] }, { p: ['UR3', 'DR1'] }, { p: ['UR2', 'UL1', 'UR1', 'DR1'] }] } },
 
     { id: 'A31', tier: 'young', unit: 8, icon: '♞', title: 'Knight Jump', skill: 'Chess moves', engine: 'predict',
       goal: 'The knight jumps in an L. Where does it land?',
