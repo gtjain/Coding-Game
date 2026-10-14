@@ -39,6 +39,18 @@ node tools/bundle.mjs      # writes dist/index.html with scripts and audio inlin
 ```
 The claude.ai artifact viewer needs this single file; it does not load the separate js/ and audio/ files.
 
+## Publish as a website (GitHub Pages)
+`.github/workflows/pages.yml` publishes the game on every push to `prototypes-v1`. It runs
+`node tools/site.mjs`, which wraps `index.html` in a full HTML page (doctype, phone viewport) and
+copies `js/` and `audio/` next to it. Needed for the microphone games, which the claude.ai viewer blocks.
+
+One-time setup: the repo must be public (or on a paid GitHub plan), then
+Settings → Pages → Build and deployment → Source: **GitHub Actions**.
+The address is `https://gtjain.github.io/Coding-Game/`. Progress saved there is separate from the claude.ai link.
+
+To check the site locally: `node tools/site.mjs`, serve `site/` (e.g. `python3 -m http.server`), then
+`PAGE_URL=http://127.0.0.1:8000/index.html PW=... node test/play.mjs`.
+
 ## Test
 ```
 PW=$(npm root -g)/playwright/index.mjs node test/play.mjs
