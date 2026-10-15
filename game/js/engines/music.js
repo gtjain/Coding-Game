@@ -39,7 +39,7 @@
     let idx = 0;
     const find = {
       setup() { idx = 0; kb.labels(R().labels); main.innerHTML = `<p class="pfind">Find <span class="pbig"></span></p>${R().labels ? '' : '<p class="fine">Tip: C is just left of the two black keys.</p>'}<div class="seqrow pgot"></div>`; acts.innerHTML = ''; this.ask(); },
-      ask() { const n = R().notes[idx]; $('.pbig', main).textContent = NOTES[n][2]; pop($('.pbig', main)); g.say(cfg.findSay[NOTES[n][2]]); },
+      ask() { const n = R().notes[idx]; $('.pbig', main).textContent = NOTES[n][2]; pop($('.pbig', main)); g.say(cfg.find.say[NOTES[n][2]]); },
       async key(n, b) {
         if (busy) return; play(n); pop(b);
         const want = R().notes[idx];

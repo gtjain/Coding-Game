@@ -475,7 +475,7 @@ window.CH_CATALOG = {
       steps: ['👀 Look at the big letter.', '👆 Tap the piano key with that letter.', '🙈 Last round the letters hide!'],
       say: 'Find the piano keys by their letters. Look at the big letter. Then tap the key with that letter.',
       notes: ['White keys go C D E F G A B, then start again. C sits just left of each pair of black keys.', 'Each note has its own colour in every piano game.'],
-      cfg: { mode: 'find', findSay: FIND_SAY, winTitle: 'You know the piano!', rounds: [
+      cfg: { mode: 'find', find: { say: FIND_SAY }, winTitle: 'You know the piano!', rounds: [
         { notes: ['C', 'D', 'E', 'F', 'G'], labels: true }, { notes: ['A', 'B', 'E', 'C', 'G'], labels: true }, { notes: ['C', 'E', 'G', 'D'], labels: false } ] } },
 
     { id: 'A52', tier: 'young', unit: 13, icon: '🎵', title: 'Copy the Tune', skill: 'Music: sequences', engine: 'piano',
