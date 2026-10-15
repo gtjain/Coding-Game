@@ -7,9 +7,12 @@
 
   /* Plan a path with arrows, then Go (Bunny Hop) */
   CH.engine('arrowPath', (root, cfg, g) => {
-    root.innerHTML = `<div class="boardHost"></div><div class="tray prog" data-empty="Your plan goes here"></div><div class="palette"></div>
+    // went: the trip that was already driven (Scooter Home), shown so the kid can plan the way back
+    const went = cfg.went ? `<p class="fine wentlbl">${cfg.wentLabel || 'The way there:'}</p><div class="tray readonly went">${cfg.went.map(d => `<span class="blk">${DIRS[d][2]}</span>`).join('')}</div>` : '';
+    root.innerHTML = `${went}<div class="boardHost"></div><div class="tray prog" data-empty="Your plan goes here"></div><div class="palette"></div>
       <div class="actions"><button type="button" class="btn ghost clear">Clear</button><button type="button" class="btn go">▶ Go</button></div>`;
     const board = CH.makeBoard($('.boardHost', root), cfg.board), tray = $('.prog', root);
+    const missed = n => ({ title: `You missed ${n === 1 ? 'one' : n} ${cfg.board.items[0][2]}`, msg: `Pick up every ${cfg.board.items[0][2]} on the way. Then go to the ${cfg.board.prize}.` });
     let prog = [], busy = false;
     const draw = () => { tray.innerHTML = ''; prog.forEach((d, i) => { const b = h(`<button type="button" class="blk big" aria-label="Remove ${DNAME[d]}">${DIRS[d][2]}</button>`); b.onclick = () => { if (busy) return; prog.splice(i, 1); draw(); }; tray.appendChild(b); }); };
     CH.arrowPalette($('.palette', root), d => { if (busy) return; if (prog.length >= cfg.max) { shake(tray); return; } prog.push(d); draw(); g.hide(); }, true);
@@ -19,9 +22,10 @@
       const els = $$('.blk', tray);
       const r = await board.run(prog.map(op => ({ op })), i => els.forEach((e, j) => e.classList.toggle('now', j === i)));
       busy = false;
-      if (r.ok) return g.finish({ title: 'Yummy! You did it!' });
+      if (r.ok) return g.finish({ title: cfg.winTitle || 'Yummy! You did it!' });
       g.mistake(); if (r.step != null) els[r.step]?.classList.add('bad');
-      g.feedback({ ok: false, title: r.step != null ? 'Bonk! A rock!' : 'Almost! Keep hopping', msg: 'Change your plan and try again.', btn: 'Try again', onBtn: () => { board.reset(); draw(); } });
+      const m = r.step == null && r.left ? missed(r.left) : { title: r.step != null ? (cfg.bumpTitle || 'Bonk! A rock!') : 'Almost! Keep going', msg: 'Change your plan and try again.' };
+      g.feedback({ ok: false, ...m, btn: 'Try again', onBtn: () => { board.reset(); draw(); } });
     };
     return { solve() { if (busy) return ''; prog = CH.solvePath(cfg.board); draw(); board.reset(); return `The path is ${glyphs(prog)}. It is in your plan now: press <b>Go</b>.`; } };
   });
@@ -31,6 +35,7 @@
     root.innerHTML = `<div class="boardHost"></div><div class="hop3"></div><div class="palette"></div>
       <div class="actions"><button type="button" class="btn ghost clear">Clear</button><button type="button" class="btn go">▶ Go</button></div>`;
     const board = CH.makeBoard($('.boardHost', root), cfg.board), slots = $('.hop3', root);
+    slots.style.setProperty('--slots', cfg.slots); slots.classList.toggle('s4', cfg.slots > 3);
     let plan = [], busy = false;
     function draw() {
       slots.innerHTML = '';
@@ -54,7 +59,7 @@
       const els = $$('.hslot', slots);
       const r = await board.run(steps, i => els.forEach((e, j) => e.classList.toggle('now', i >= 0 && steps[i].slot === j)));
       busy = false;
-      if (r.ok) return g.finish({ title: 'Hop hop hooray!' });
+      if (r.ok) return g.finish({ title: cfg.winTitle || 'Hop hop hooray!' });
       g.mistake();
       g.feedback({ ok: false, title: r.step != null ? 'Oops, flowers!' : 'Not far enough', msg: 'Change the arrows or the dots and try again.', btn: 'Try again', onBtn: () => { board.reset(); draw(); } });
     };

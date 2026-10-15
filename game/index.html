@@ -575,6 +575,87 @@ textarea.field{resize:vertical;font-size:13px}
 .cnt b{min-width:0;font-size:11px;letter-spacing:0}
 .unitpos{font-size:12px;font-weight:800;color:var(--muted);white-space:nowrap}
 
+/* ---- v3.4: ages 4-6 themed games ---- */
+.cell.item{background:#FFF6DC}
+.cell.gate{background:#FFE2DE}
+.cell.gotit{animation:pop .45s}
+.hop3{grid-template-columns:repeat(var(--slots,3),minmax(0,1fr))}
+.hop3.s4 .blk.big{width:48px;height:48px;font-size:26px}
+.hop3.s4 .hslot{padding:4px}
+.wentlbl{align-self:flex-start}
+.tray.went{min-height:0;background:#EAF9F0;border-color:var(--grass)}
+.tray.went .blk{background:var(--grass);box-shadow:0 4px 0 var(--grassDk);width:40px;height:40px;font-size:24px}
+.pxcode{width:100%;display:grid;gap:4px}
+.pxline{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:3px 6px;border-radius:10px}
+.pxline.now{background:#FFF6DC;box-shadow:inset 0 0 0 2px var(--sun)}
+.pxn{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:7px;background:var(--line);color:var(--ink);font-family:var(--display);font-size:15px;font-weight:800;line-height:1}
+.codepanel .pxn{background:#45507A;color:#fff;margin-right:6px}
+.pxrun{display:inline-flex;align-items:center;gap:3px;font-family:var(--display);font-weight:800;font-size:18px;font-variant-numeric:tabular-nums}
+.pxsw{display:inline-block;width:24px;height:24px;border-radius:6px;background:var(--c);box-shadow:inset 0 0 0 2px rgba(0,0,0,.12)}
+.pxsw.white{box-shadow:inset 0 0 0 2px var(--line)}
+.pxgrid{display:grid;grid-template-columns:26px repeat(var(--w),minmax(0,1fr));gap:4px;width:min(100%,calc(var(--w) * 52px + 30px));align-items:center}
+.pxc{aspect-ratio:1;min-width:0;border-radius:8px;border:2px solid var(--line);padding:0}
+.pxc.wrong{border-color:var(--coral);box-shadow:0 0 0 2px var(--coral)}
+.pxgrid.done .pxc{animation:pop .45s}
+.pxpal{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.pxpick{width:56px;height:56px;border-radius:16px;border:2px solid var(--line);border-bottom-width:5px;background:var(--card);display:grid;place-items:center;font-size:28px;padding:0}
+.pxpick .pxsw{width:34px;height:34px;border-radius:9px}
+.pxpick[aria-pressed="true"]{border-color:var(--grape);background:#F3F0FF;transform:translateY(-3px)}
+.gwho{margin:0;font-weight:800;font-size:18px;text-align:center}
+.gqs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.gqs .choice.wide{padding:10px 12px;font-size:16px}
+.glog{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:0}
+.gans{font-weight:700;font-size:14px;border-radius:999px;padding:3px 10px;background:#EAF9F0;color:var(--grassDk)}
+.gans.n{background:#FFE2DE;color:var(--coralDk)}
+.gcards{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.gcard{position:relative}
+.gcard.out{opacity:.3;filter:grayscale(1)}
+.gcard.out::after{content:"✕";position:absolute;inset:0;display:grid;place-items:center;color:var(--coral);font-size:48px;font-weight:800}
+.gcard.right,.ropt.right{border-color:var(--grass);background:#EAF9F0}
+.srow{display:flex;gap:8px;justify-content:center;align-items:flex-end;min-height:110px;width:100%}
+.sitem{border:2px solid var(--line);border-bottom-width:5px;background:var(--card);border-radius:16px;padding:4px;min-width:0;flex:0 1 64px;display:grid;place-items:end center;height:calc(30px + var(--s) * 16px)}
+.sitem span{font-size:calc(14px + var(--s) * 8px);line-height:1}
+.sitem.sel{border-color:var(--grape);background:#F3F0FF;transform:translateY(-6px)}
+.evwire{display:grid;gap:8px;width:100%}
+.evwire .rrow{font-size:30px}
+.evb{display:inline-block;width:40px;height:40px;border-radius:50%;background:var(--c);box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.evplay{display:flex;flex-direction:column;gap:12px;align-items:center;width:100%}
+.evask{margin:0;font-family:var(--display);font-weight:800;font-size:22px;text-align:center}
+.evbtns{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+.evbig{width:76px;height:76px;border-radius:50%;border:0;background:var(--c);box-shadow:0 6px 0 rgba(0,0,0,.25);display:grid;place-items:end center;padding-bottom:4px}
+.evbig small{font-size:20px;background:#fff;border-radius:999px;padding:0 4px}
+.fishrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%}
+.fish{display:grid;justify-items:center;gap:2px;border:2px solid #B9DCF7;background:#E3F3FF;border-radius:16px;padding:6px 4px;min-width:56px;flex:0 1 64px}
+.fish .fe{font-size:36px;line-height:1.1}
+.fish .fwant,.fish .fplate{font-size:14px;min-height:20px;letter-spacing:-2px;text-align:center}
+.fish .fplate{border-top:2px dashed #B9DCF7;width:100%}
+.fish.zz{background:#EEEAFF;border-color:#D6CCFF}
+.fish.now{border-color:var(--sunDk);background:#FFF6DC}
+.fish.wrong{border-color:var(--coral);background:#FFE2DE}
+.feif{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%}
+.feif .kw,.rrow .kw{font-family:var(--display);font-weight:800;color:var(--grapeDk)}
+.ropts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.ropt{border:2px solid var(--line);border-bottom-width:5px;background:var(--card);border-radius:18px;padding:8px 10px;min-width:72px}
+.rstack{display:flex;flex-direction:column;align-items:center;font-size:30px;line-height:1.05}
+.pfind{margin:0;font-family:var(--display);font-weight:800;font-size:22px;text-align:center}
+.pbig{display:inline-grid;place-items:center;min-width:56px;height:56px;border-radius:14px;background:var(--ink);color:#fff;font-size:38px;margin-left:6px;vertical-align:middle}
+.pianohost{width:100%;display:flex;justify-content:center}
+.piano{position:relative;display:flex;width:min(100%,440px);height:150px;user-select:none}
+.pkey{flex:1 1 0;min-width:0;border:2px solid #C9D3E6;border-top:0;border-radius:0 0 10px 10px;background:linear-gradient(#fff 70%,#F2F5FB);display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:0 0 6px;box-shadow:0 4px 0 #C9D3E6;position:relative}
+.pkey::before{content:"";position:absolute;left:4px;right:4px;bottom:34px;height:6px;border-radius:3px;background:var(--c)}
+.pkey b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font-family:var(--display);font-size:16px;line-height:1}
+.piano.nolabel .pkey b{visibility:hidden}
+.pkey.down{background:var(--c);transform:translateY(3px);box-shadow:0 1px 0 #C9D3E6}
+.bkey{position:absolute;top:0;left:calc(100% / 8 * var(--i) - 100% / 32);width:calc(100% / 16);height:58%;background:var(--ink);border-radius:0 0 6px 6px;pointer-events:none;z-index:1}
+.nchip{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--c);color:#fff;font-family:var(--display);font-weight:800;font-size:18px;line-height:1;border:0;padding:0;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.nchip.big{width:42px;height:42px;font-size:21px}
+.nchip.now{outline:3px solid var(--ink);outline-offset:2px}
+.nchip.ok{box-shadow:0 0 0 3px var(--grass)}
+.nchip.wrong{box-shadow:0 0 0 3px var(--coral);opacity:.6}
+.nchip.bugged{background:#FFE2DE;font-size:22px}
+.ptarget,.pbug,.pgot{gap:6px}
+.pbody{display:flex;gap:6px;min-width:96px;min-height:46px;padding:2px 6px;border:3px dashed var(--sunDk);border-radius:14px;background:var(--card);align-items:center}
+
 @media (prefers-reduced-motion: reduce){
   *{animation:none!important;transition:none!important}
 }
@@ -582,7 +663,7 @@ textarea.field{resize:vertical;font-size:13px}
 
 <header class="top">
   <div class="topin">
-    <div class="brand"><span class="logo"><i></i><i></i><i></i><i></i></span>Code Hoppers <span class="tag">Prototype v3.3</span></div>
+    <div class="brand"><span class="logo"><i></i><i></i><i></i><i></i></span>Code Hoppers <span class="tag">Prototype v3.4</span></div>
     <div class="topright">
       <span class="chipbtn timer" id="timer" aria-live="polite">⏱ 15:00</span>
       <button class="chipbtn" id="whoBtn" type="button"></button>
@@ -624,4 +705,6 @@ textarea.field{resize:vertical;font-size:13px}
 <script src="js/engines/lists.js"></script>
 <script src="js/engines/more.js"></script>
 <script src="js/engines/rules.js"></script>
+<script src="js/engines/kids.js"></script>
+<script src="js/engines/music.js"></script>
 <script src="js/app.js"></script>

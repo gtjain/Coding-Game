@@ -18,7 +18,7 @@ check(`all ${phrases.length} spoken lines have a recorded clip`, missing.length 
 
 const browser = await chromium.launch();
 const NEW_YOUNG = ['A10', 'A11', 'A12', 'A13', 'A14', 'A15', 'A16'], NEW_OLDER = ['B13', 'B14', 'B15', 'B16', 'B17', 'B18', 'B19', 'B20', 'B21'];
-const BOARD_CARDS = ['A1', 'A9', 'A4', 'A7', 'A8', 'B1', 'B12', 'B2', 'B8', 'B11'];
+const BOARD_CARDS = ['A1', 'A9', 'A4', 'A7', 'A8', 'B1', 'B12', 'B2', 'B8', 'B11', 'A38', 'A43', 'A45', 'A48'];
 
 /* 1. sprite lands exactly on each square, every board card, three widths */
 for (const [W, H] of [[360, 780], [768, 1000], [1280, 900]]) {
@@ -493,6 +493,159 @@ await open('B4');
 const axis = await p.evaluate(() => { const t = document.querySelector('#card-B4 .towers').getBoundingClientRect(); const base = t.bottom - 3; return [...document.querySelectorAll('#card-B4 .axis span')].map(s => { const r = s.getBoundingClientRect(); return Math.abs((r.top + r.height / 2) - (base - (+s.textContent) * 16)); }); });
 check('B4 scale numbers line up with the grid lines', axis.length === 9 && Math.max(...axis) <= 1.5, axis.map(v => v.toFixed(1)).join(','));
 
+
+/* ---- ages 4-6, batch 4: dinosaurs, cars, swimming, piano, thinking games ---- */
+const arrows = async (id, ds) => { for (const d of ds) await p.click(`${C(id)} [aria-label="Add ${{ U: 'up', D: 'down', L: 'left', R: 'right' }[d]}"]`); };
+const nextBtn = id => p.click(`${R(id)} button`);
+// Dino Eggs: the nest only counts after both eggs
+await open('A38');
+await arrows('A38', 'RRUUUURR'); await p.click(`${C('A38')} .go`); await wait(400 * 8 + 1600); await stars('A38', 3);
+// Bunny Hop 3: going straight home misses the carrots
+await open('A55');
+await arrows('A55', 'UUU'); await p.click(`${C('A55')} .go`); await wait(400 * 3 + 1400);
+check('A55 home without the carrots is not a win', /You missed 2 🥕/.test(await txt('A55')), await txt('A55'));
+await nextBtn('A55'); await p.click(`${C('A55')} .clear`);
+await arrows('A55', 'RRRUUULLL'); await p.click(`${C('A55')} .go`); await wait(400 * 9 + 1600); await stars('A55', 2);
+// Garage Gate: the gate is shut until the key is picked up
+await open('A43');
+await arrows('A43', 'RRRRUUUU'); await p.click(`${C('A43')} .go`); await wait(400 * 8 + 1800);
+check('A43 the gate blocks the car before it has the key', /Bonk/.test(await txt('A43')), await txt('A43'));
+await nextBtn('A43'); await p.click(`${C('A43')} .clear`);
+await arrows('A43', 'UUUURRDRRU'); await p.click(`${C('A43')} .go`); await wait(400 * 10 + 1800); await stars('A43', 2);
+check('A43 the gate opens once the key is collected', await p.evaluate(() => !document.querySelector('#card-A43 .cell.gate')));
+// Scooter Home: reverse the trip
+await open('A42');
+check('A42 shows the way there', await p.locator(`${C('A42')} .went .blk`).count() === 7);
+await arrows('A42', 'LLUUULL'); await p.click(`${C('A42')} .go`); await wait(400 * 7 + 1600); await stars('A42', 3);
+// Scooter Loops: four cards
+await open('A45');
+for (const [i, [d, n]] of [['right', 4], ['up', 3], ['left', 3], ['up', 2]].entries()) { await p.click(`${C('A45')} [aria-label="Add ${d}"]`); await clickN(`${C('A45')} .hslot >> nth=${i} >> .plus`, n - 1); }
+await p.click(`${C('A45')} .go`); await wait(400 * 12 + 1600); await stars('A45', 3);
+// Car Loops: predict with repeat blocks
+await open('A46'); const ends46 = [];
+for (let rd = 0; rd < 3; rd++) { ends46.push((await p.evaluate(() => document.querySelector('#card-A46 .play').__end())).join(',')); const k = await stepsOf('A46'); await clickCells('A46'); await wait(400 * k + 1800); }
+check('A46 loops land where expected', ends46.join(' ') === '3,3 2,2 1,0', ends46.join(' '));
+await stars('A46', 3);
+// Talk to Swimmer: words through the speech parser, shells on the way
+await open('A48');
+await p.evaluate(() => document.querySelector('#card-A48 .play').__hear('up up right right up up right right'));
+await wait(400 * 8 + 1600); await stars('A48', 3);
+// Dino Line-up: swap neighbours that are big-then-small
+await open('A39');
+for (let rd = 0; rd < 3; rd++) {
+  for (let guard = 0; guard < 12; guard++) {
+    const a = await p.evaluate(() => document.querySelector('#card-A39 .play').__row());
+    const k = a.findIndex((v, i) => i < a.length - 1 && v > a[i + 1]); if (k < 0) break;
+    await p.click(`${C('A39')} .sitem >> nth=${k}`); await p.click(`${C('A39')} .sitem >> nth=${k + 1}`); await wait(150);
+  }
+  await wait(1100); if (rd < 2) await nextBtn('A39');
+}
+await stars('A39', 3);
+// Dino Pixels: paint each row from the code
+await open('A40');
+for (let rd = 0; rd < 3; rd++) {
+  const rows = await p.evaluate(() => document.querySelector('#card-A40 .play').__answer());
+  for (const c of new Set(rows.join('').replace(/W/g, ''))) {
+    await p.click(`${C('A40')} .pxpick[data-c="${c}"]`);
+    for (let y = 0; y < rows.length; y++) for (let x = 0; x < rows[y].length; x++) if (rows[y][x] === c) await p.click(`${C('A40')} .pxc[data-x="${x}"][data-y="${y}"]`);
+  }
+  await p.click(`${C('A40')} .go`); await wait(1300); if (rd < 2) await nextBtn('A40');
+}
+await stars('A40', 3);
+await open('A40'); await p.click(`${C('A40')} .pxc >> nth=0`); await p.click(`${C('A40')} .go`);
+check('A40 a wrong square is marked', /not right/.test(await txt('A40')) && await p.locator(`${C('A40')} .pxc.wrong`).count() > 0, await txt('A40'));
+// Dino Dance: longer copy-the-dance
+await open('A41');
+for (const [rd, seq] of [['roar', 'stomp', 'roar', 'swish'], ['stomp', 'stomp', 'chomp', 'roar', 'swish'], ['swish', 'roar', 'chomp', 'stomp', 'roar', 'chomp']].entries()) {
+  await p.click(`${C('A41')} .watch`); await wait(1100 * seq.length + 400);
+  for (const m of seq) await p.click(`${C('A41')} [aria-label="${m}"]`);
+  await wait(1000);
+}
+await stars('A41', 3);
+// Car Buttons: wire the buttons, then press the right one when asked
+await open('A44');
+for (const a of ['honk', 'lights', 'music']) await p.click(`${C('A44')} .evacts [aria-label="${a}"]`);
+await p.click(`${C('A44')} .go`);
+for (const k of ['green', 'red', 'blue']) { await p.click(`${C('A44')} .evbig[data-k="${k}"]`); await wait(800); }
+await wait(900); await nextBtn('A44');
+for (const a of ['car wash', 'honk', 'lights', 'music']) await p.click(`${C('A44')} .evacts [aria-label="${a}"]`);
+await p.click(`${C('A44')} .go`);
+await p.click(`${C('A44')} .evbig[data-k="blue"]`); await wait(800);
+check('A44 a button does what it was wired to (blue = lights, so the car still needs a wash)', /Wash the car/.test(await p.innerText(`${C('A44')} .evask`)) && /💡/.test(await p.innerText(`${C('A44')} .evfx`)));
+for (const k of ['red', 'green', 'green', 'yellow', 'blue']) { await p.click(`${C('A44')} .evbig[data-k="${k}"]`); await wait(800); }
+await wait(900); await stars('A44', 2);
+// Feed Every Fish: one loop for every fish, then an IF for sleepy fish
+await open('A47');
+await p.click(`${C('A47')} .plus`); await p.click(`${C('A47')} .go`); await wait(3 * 900 + 1400); await nextBtn('A47');
+await clickN(`${C('A47')} .plus`, 2); await p.click(`${C('A47')} .go`); await wait(5 * 1100 + 1400); await nextBtn('A47');
+await p.click(`${C('A47')} .plus`); await p.click(`${C('A47')} .go`); await wait(5 * 900 + 1400);
+check('A47 feeding a sleepy fish is caught', /woke a sleepy/.test(await txt('A47')), await txt('A47'));
+await nextBtn('A47'); await p.click(`${C('A47')} .feif [data-r="skip"]`); await p.click(`${C('A47')} .go`); await wait(5 * 900 + 1400);
+await stars('A47', 2);
+// Lifeguard Rules
+await open('A49');
+for (const it of ['Swim!', 'Sit and wait.', 'Go inside.', 'Sun cream.']) await p.click(`${C('A49')} [aria-label="${it}"]`);
+await p.click(`${C('A49')} .go`); await wait(5 * 1100 + 800); await stars('A49', 3);
+// Sea Memory: 12 cards
+await open('A50');
+{ const f = await p.$$eval('#card-A50 .mcard', els => els.map(e => e.dataset.e));
+  check('A50 has 12 cards', f.length === 12);
+  for (const e of [...new Set(f)]) { const [i, j] = f.map((x, k) => x === e ? k : -1).filter(k => k >= 0); await p.click(`${C('A50')} .mcard >> nth=${i}`); await p.click(`${C('A50')} .mcard >> nth=${j}`); } }
+await wait(600); await stars('A50', 3);
+// Piano Keys: find by letter, then with the letters hidden
+await open('A51');
+for (const [rd, notes] of [['C', 'D', 'E', 'F', 'G'], ['A', 'B', 'E', 'C', 'G'], ['C', 'E', 'G', 'D']].entries()) {
+  if (rd === 2) check('A51 last round hides the letters', await p.evaluate(() => getComputedStyle(document.querySelector('#card-A51 .pkey b')).visibility === 'hidden'));
+  for (const n of notes) { await p.click(`${C('A51')} .pkey[data-n="${n}"]`); await wait(150); }
+  await wait(1100); if (rd < 2) await nextBtn('A51');
+}
+await stars('A51', 3);
+check('A51 piano has 8 white and 5 black keys', await p.locator(`${C('A51')} .pkey`).count() === 8 && await p.locator(`${C('A51')} .bkey`).count() === 5);
+// Copy the Tune
+await open('A52');
+for (const [rd, tune] of [['E', 'D', 'C'], ['E', 'D', 'C', 'D', 'E', 'E', 'E'], ['C', 'C', 'G', 'G', 'A', 'A', 'G']].entries()) {
+  await p.click(`${C('A52')} .listen`); await wait(560 * tune.length + 400);
+  for (const n of tune) { await p.click(`${C('A52')} .pkey[data-n="${n}"]`); await wait(120); }
+  await wait(1100); if (rd < 2) await nextBtn('A52');
+}
+await stars('A52', 3);
+// Melody Loop: a wrong count first, then the right loops
+await open('A53');
+for (const n of ['C', 'G']) await p.click(`${C('A53')} .pkey[data-n="${n}"]`);
+await p.click(`${C('A53')} .go`); await wait(4 * 420 + 900);
+check('A53 a loop that plays too few notes is caught', /played 4 notes. The song has 6/.test(await txt('A53')), await txt('A53'));
+await nextBtn('A53'); await p.click(`${C('A53')} .plus`); await p.click(`${C('A53')} .go`); await wait(6 * 420 + 1600); await nextBtn('A53');
+for (const n of ['E', 'D', 'C']) await p.click(`${C('A53')} .pkey[data-n="${n}"]`);
+await p.click(`${C('A53')} .go`); await wait(6 * 420 + 1600); await nextBtn('A53');
+for (const n of ['G', 'G', 'E']) await p.click(`${C('A53')} .pkey[data-n="${n}"]`);
+await p.click(`${C('A53')} .plus`); await p.click(`${C('A53')} .go`); await wait(9 * 420 + 1600);
+await stars('A53', 2);
+// Fix the Tune: tap the bug note, then the key that fixes it
+await open('A54');
+for (const [rd, [i, fix, len]] of [[4, 'A', 7], [2, 'C', 7], [3, 'G', 8]].entries()) {
+  await p.click(`${C('A54')} .pbug .nchip >> nth=${i}`); await p.click(`${C('A54')} .pkey[data-n="${fix}"]`); await wait(420 * len + 1800);
+  if (rd < 2) await nextBtn('A54');
+}
+await stars('A54', 3);
+// Guess My Animal: ask one question, then tap the secret one
+await open('A56');
+for (let rd = 0; rd < 3; rd++) {
+  await p.click(`${C('A56')} .gq >> nth=1`);
+  const sec = await p.evaluate(() => document.querySelector('#card-A56 .play').__secret());
+  const crossed = await p.locator(`${C('A56')} .gcard.out`).count();
+  if (rd === 0) check('A56 a question crosses animals out', crossed > 0, String(crossed));
+  await p.click(`${C('A56')} .gcard[data-e="${sec}"]`); await wait(1100); if (rd < 2) await nextBtn('A56');
+}
+await stars('A56', 3);
+// Robot Chef
+await open('A57');
+for (const [rd, k] of [1, 2, 0].entries()) { await p.click(`${C('A57')} .ropt >> nth=${k}`); await wait(1100); if (rd < 2) await nextBtn('A57'); }
+await stars('A57', 3);
+// Pattern Train 4
+await open('A58');
+for (const a of ['🔵', '🍌', '🌙', '🦕']) { await p.click(`${C('A58')} .choice:has-text("${a}")`); await wait(1000); }
+await stars('A58', 3);
+
 /* solution key on every card */
 const ALL = await p.evaluate(() => window.CH_CATALOG.games.map(g => g.id));
 const cat = await p.evaluate(() => window.CH_CATALOG.games.map(g => ({ id: g.id, goal: g.goal, steps: g.steps, how: g.how })));
@@ -510,7 +663,9 @@ check(`solution key explains every one of ${ALL.length} cards`, noKey.length ===
 // for cards where the key loads the answer, pressing Go must then succeed
 for (const [id, ms, re] of [['A1', 3200, /With the solution key/], ['A9', 4200, /With the solution key/], ['A4', 4400, /With the solution key/], ['A5', 3800, /With the solution key/],
   ['B1', 4800, /With the solution key/], ['B12', 4400, /With the solution key/], ['B8', 6800, /With the solution key/], ['B2', 4000, /With the solution key/],
-  ['B4', 3000, /Perfect skyline/], ['B10', 5200, /Next shape/], ['B3', 2800, /Sorted/], ['B5', 3400, /With the solution key/]]) {
+  ['B4', 3000, /Perfect skyline/], ['B10', 5200, /Next shape/], ['B3', 2800, /Sorted/], ['B5', 3400, /With the solution key/],
+  ['A38', 4800, /With the solution key/], ['A43', 5800, /With the solution key/], ['A45', 6400, /With the solution key/], ['A40', 1600, /You made a flag/],
+  ['A47', 3600, /Every fish is happy/], ['A53', 4200, /That is the song/], ['A49', 6400, /With the solution key/]]) {
   await open(id);
   await p.evaluate(id => { document.querySelector(`#card-${id} .stuck`).hidden = false; }, id);
   await p.click(`#card-${id} .stuck`); await p.click(`${C(id)} .go`); await wait(ms);

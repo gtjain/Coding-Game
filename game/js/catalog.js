@@ -10,6 +10,9 @@ const subSay = (a, b, thing) => `${cap(NUM[a])} ${thing}. The monkey eats ${NUM[
 // grid cells visited by moves like 'R4', for path boards
 const pathOf = (start, moves) => { const V = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] }, out = [[...start]]; let [x, y] = start;
   moves.forEach(m => { for (let k = 0; k < +m.slice(1); k++) { x += V[m[0]][0]; y += V[m[0]][1]; out.push([x, y]); } }); return out; };
+const ARROW_WORDS = { U: { label: 'up', glyph: '↑', hear: ['up', 'app', 'op', 'hop up'] }, D: { label: 'down', glyph: '↓', hear: ['down', 'dawn', 'town'] },
+  L: { label: 'left', glyph: '←', hear: ['left', 'lift', 'laughed', 'lefty'] }, R: { label: 'right', glyph: '→', hear: ['right', 'write', 'rite', 'bright', 'alright', 'all right'] } };
+const FIND_SAY = Object.fromEntries('CDEFGAB'.split('').map(n => [n, `Find the letter ${n}.`]));
 const rhymeSay = w => `Feed the monster words that rhyme with ${w}. Tap a picture to hear it.`;
 window.CH_CATALOG = {
   lines: {
@@ -28,11 +31,16 @@ window.CH_CATALOG = {
     bugFound: 'Squish! You found the bug. Now tap the picture that fixes it.',
     flipTwo: 'Flip two cards. Find two that match.',
     mirrorAsk: 'Is it the same both ways?',
-    pairAsk: 'Does everyone have a buddy? Or is one left alone?'
+    pairAsk: 'Does everyone have a buddy? Or is one left alone?',
+    no: 'No.',
+    crossedOut: 'That one is crossed out. It cannot be the one.',
+    alreadyOrder: 'Those two are already small, then big. Find a big one before a small one.',
+    bugNote: 'Squish! Now tap the piano key that fixes it.'
   },
 
   units: {
-    young: ['First steps', 'Little loops and rules', 'Talk to play', 'Words and letters', 'Numbers', 'Bugs and memory', 'More steps and bugs', 'Loops and patterns', 'Chess and puzzles', 'Rhymes, mirrors and pairs'],
+    young: ['First steps', 'Little loops and rules', 'Talk to play', 'Words and letters', 'Numbers', 'Bugs and memory', 'More steps and bugs', 'Loops and patterns', 'Chess and puzzles', 'Rhymes, mirrors and pairs',
+      'Dinosaurs', 'Cars and scooters', 'Swimming', 'Piano', 'Think like a coder'],
     older: ['Code moves', 'Logic and numbers', 'Talk to code', 'Words and lists', 'Luck, bugs and memory', 'Predict the path', 'More code', 'Rules', 'Variables']
   },
 
@@ -354,6 +362,191 @@ window.CH_CATALOG = {
         { n: 5, e: '🐧', name: 'penguin', say: 'Five penguins. Tap two to make a pair.' },
         { n: 6, e: '🍪', name: 'cookie', say: 'Six cookies. Pair them up.' },
         { n: 7, e: '🦆', name: 'duck', say: 'Seven ducks. Pair them up.' } ] } },
+
+    /* ---------- Ages 4–6, batch 4: themed units added at the end so earlier scores stay put ---------- */
+    { id: 'A38', tier: 'young', unit: 10, icon: '🥚', title: 'Dino Eggs', skill: 'Planning steps', engine: 'arrowPath',
+      goal: 'Collect both eggs, then take them to the nest.',
+      steps: ['👀 Find the two eggs 🥚 and the nest 🪺.', '👆 Tap arrows to plan a path past both eggs.', '▶ Press Go.'],
+      say: 'Collect both eggs, then take them to the nest. Plan a path past both eggs. Then press go.',
+      notes: ['The order of goals matters: the nest only counts after every egg is picked up.'],
+      cfg: { max: 10, winTitle: 'Eggs safe in the nest!', board: { w: 5, h: 5, start: [0, 4], goal: [4, 0], walls: [[1, 3], [3, 3], [3, 2], [1, 1]], items: [[2, 4, '🥚'], [2, 1, '🥚']], wallIcon: '🌴', hero: '🦖', prize: '🪺' } } },
+
+    { id: 'A39', tier: 'young', unit: 10, icon: '🦕', title: 'Dino Line-up', skill: 'Sorting', engine: 'swapSort',
+      goal: 'Line the dinos up from small to big.',
+      steps: ['👀 Find a big dino standing before a smaller one.', '👆 Tap those two neighbours to swap them.', '🔁 Keep swapping until they go small to big.'],
+      say: 'Line the dinos up from small to big. Find a big dino before a smaller one. Tap both to swap them.',
+      notes: ['Swapping neighbours that are in the wrong order is bubble sort, a real sorting algorithm.', 'Swapping two that are already in order counts as a wrong try.'],
+      cfg: { e: '🦕', name: 'dino', rounds: [[2, 1, 3], [3, 1, 4, 2], [4, 2, 5, 1, 3]] } },
+
+    { id: 'A40', tier: 'young', unit: 10, icon: '🎨', title: 'Dino Pixels', skill: 'Following code', engine: 'pixelPaint',
+      goal: 'Read the colour code. Paint the picture.',
+      steps: ['👀 Each line of code is one row. 🟥×3 means three red squares.', '👆 Pick a colour, then tap squares in that row.', '✔ Press Check.'],
+      say: 'Read the colour code and paint the picture. Each line of code is one row. Pick a colour, then tap the squares. Then press check.',
+      notes: ['Computers store pictures like this: each row is a list of colours. "Three red" is a tiny loop.', 'The last picture is a long-neck dinosaur.'],
+      cfg: { winTitle: 'Pixel artist!', rounds: [
+        { name: 'a flag', rows: ['RRRR', 'WWWW', 'BBBB'] },
+        { name: 'a car', rows: ['WRRRW', 'RRRRR', 'WKWKW'] },
+        { name: 'a dino', rows: ['WWWWGG', 'WWWWGW', 'WGGGGW', 'GGGGGW', 'WGWGWW'] } ] } },
+
+    { id: 'A41', tier: 'young', unit: 10, icon: '🦖', title: 'Dino Dance', skill: 'Remembering steps', engine: 'dance',
+      goal: 'Copy the dino dance. It gets longer!',
+      steps: ['👀 Press Watch. The robot dances.', '👆 Tap the same moves in the same order.'],
+      say: 'Copy the dino dance. It gets longer! Press watch. Then tap the same moves in the same order.',
+      notes: ['A harder Copy the Dance: four, five, then six moves.'],
+      cfg: { moves: [{ id: 'roar', e: '🦖', say: 'Roar!' }, { id: 'stomp', e: '🦶', say: 'Stomp!' }, { id: 'swish', e: '🦕', say: 'Tail swish!' }, { id: 'chomp', e: '😬', say: 'Chomp!' }],
+             rounds: [['roar', 'stomp', 'roar', 'swish'], ['stomp', 'stomp', 'chomp', 'roar', 'swish'], ['swish', 'roar', 'chomp', 'stomp', 'roar', 'chomp']] } },
+
+    { id: 'A42', tier: 'young', unit: 11, icon: '🛴', title: 'Scooter Home', skill: 'Going backwards', engine: 'arrowPath',
+      goal: 'Ride the scooter back home.',
+      steps: ['👀 Read the way there. It went from home to here.', '🔄 Go back: start from the last arrow, and turn each one around.', '▶ Press Go.'],
+      say: 'Ride the scooter back home. Read the way there. To go back, start from the last arrow and turn each one around.',
+      notes: ['Undoing a program means doing the steps backwards, in reverse order. Right becomes left, down becomes up.'],
+      cfg: { max: 9, winTitle: 'Home sweet home!', went: ['R', 'R', 'D', 'D', 'D', 'R', 'R'], wentLabel: 'The way there, from home:',
+             board: { w: 5, h: 5, start: [4, 3], goal: [0, 0], path: pathOf([0, 0], ['R2', 'D3', 'R2']), wallIcon: '🌳', hero: '🛴', prize: '🏠' } } },
+
+    { id: 'A43', tier: 'young', unit: 11, icon: '🔑', title: 'Garage Gate', skill: 'Planning steps', engine: 'arrowPath',
+      goal: 'Get the key 🔑. It opens the gate 🚧. Then park.',
+      steps: ['🔑 The gate is shut until the car has the key.', '👆 Plan a path: key first, then the parking spot.', '▶ Press Go.'],
+      say: 'Get the key. It opens the gate. Then drive to the parking spot.',
+      notes: ['Some steps must happen before others. The gate stays shut until the key is collected.'],
+      cfg: { max: 12, winTitle: 'Parked!', bumpTitle: 'Bonk! Something is in the way', board: { w: 5, h: 5, start: [0, 4], goal: [4, 0], walls: [[3, 0], [1, 2], [2, 2], [3, 2]], items: [[0, 0, '🔑']], gates: [[4, 1, '🚧']], wallIcon: '🌳', hero: '🚘', prize: '🅿️' } } },
+
+    { id: 'A44', tier: 'young', unit: 11, icon: '🔘', title: 'Car Buttons', skill: 'Events', engine: 'eventButtons',
+      goal: 'Choose what each button does. Then drive!',
+      steps: ['👆 Tap a box. Then tap what that button should do.', '▶ Press Start.', '🚗 Listen to what the car needs. Tap your button for it.'],
+      say: 'Choose what each button does. Tap a box, then tap what that button should do. Then press start, and tap the right button.',
+      notes: ['"When I tap this, do that" is an event. Every app and game is built from events.', 'Any wiring works. The kid has to remember their own rules.'],
+      cfg: { hero: '🚗', actions: [
+          { id: 'honk', e: '📯', name: 'honk', say: 'Make the car honk!' },
+          { id: 'lights', e: '💡', name: 'lights', say: 'Turn on the lights!' },
+          { id: 'music', e: '🎵', name: 'music', say: 'Play some music!' },
+          { id: 'wash', e: '🫧', name: 'car wash', say: 'Wash the car!' } ],
+        rounds: [
+          { buttons: ['red', 'green', 'blue'], actions: ['honk', 'lights', 'music'], asks: ['lights', 'honk', 'music'] },
+          { buttons: ['red', 'green', 'blue', 'yellow'], actions: ['honk', 'lights', 'music', 'wash'], asks: ['wash', 'honk', 'honk', 'music', 'lights'] } ] } },
+
+    { id: 'A45', tier: 'young', unit: 11, icon: '🏁', title: 'Scooter Loops', skill: 'Loops', engine: 'hopCards',
+      goal: 'Ride to the flag with four cards.',
+      steps: ['👆 Tap an arrow to add a card.', '➕ Tap plus to ride more squares.', '▶ Press Go. You have 4 cards.'],
+      say: 'Ride to the flag with four cards. Tap an arrow. Tap plus to ride more squares. Then press go.',
+      notes: ['A zig-zag path: four straight runs, each with its own count.'],
+      cfg: { slots: 4, maxCount: 4, winTitle: 'Zoom! You made it!', board: { w: 6, h: 6, start: [0, 5], goal: [1, 0], path: pathOf([0, 5], ['R4', 'U3', 'L3', 'U2']), wallIcon: '🌳', hero: '🛴', prize: '🏁' } } },
+
+    { id: 'A46', tier: 'young', unit: 11, icon: '🚗', title: 'Car Loops', skill: 'Reading loops', engine: 'predict',
+      goal: 'Where will the car stop? Watch the repeat block!',
+      steps: ['👀 🔁 3× means: do the arrows inside three times.', '🧠 Count every step.', '👆 Tap the square where the car stops.'],
+      say: 'Where will the car stop? A repeat block does the arrows inside again and again. Count every step, then tap the square.',
+      notes: ['Reading loops before writing them.'],
+      cfg: { winTitle: 'You can read loops!', board: { w: 5, h: 5, start: [0, 4], hero: '🚗' },
+             rounds: [{ prog: { main: [{ loop: 3, body: ['R'] }, 'U'] } }, { prog: { main: [{ loop: 2, body: ['U', 'R'] }] } }, { prog: { main: [{ loop: 2, body: ['R', 'U', 'U'] }, 'L'] } }] } },
+
+    { id: 'A47', tier: 'young', unit: 12, icon: '🐟', title: 'Feed Every Fish', skill: 'For each', engine: 'forEach',
+      goal: 'One loop feeds every fish. How much food each?',
+      steps: ['👀 Look how much food each fish wants.', '➕ Set the number in the loop.', '💤 Sleepy fish? Use the IF to skip them. Then press Go.'],
+      say: 'One loop feeds every fish. Look how much food each fish wants. Set the number in the loop. Then press go.',
+      notes: ['"For each fish, give two" is a for-each loop: it runs once per fish.', 'Round 3 adds an IF inside the loop.'],
+      cfg: { e: '🐟', food: '🦐', one: 'fish', many: 'fish', rounds: [{ fish: [0, 0, 0], want: 2 }, { fish: [0, 0, 0, 0, 0], want: 3 }, { fish: [0, 1, 0, 1, 0], want: 2, ifs: true }] } },
+
+    { id: 'A48', tier: 'young', unit: 12, icon: '🏊', title: 'Talk to Swimmer', skill: 'Voice commands', engine: 'voiceMove',
+      goal: 'Swim to the ring. Pick up both shells on the way.',
+      steps: ['🎤 Tap the microphone.', '🗣️ Say up, down, left or right.', '🐚 Get both shells, then the ring. No microphone? Tap a word.'],
+      say: 'Swim to the ring. Pick up both shells on the way. Tap the microphone. Then say up, down, left, or right.',
+      notes: ['A bigger voice maze with things to collect.'],
+      cfg: { board: { w: 5, h: 5, start: [0, 4], goal: [4, 0], path: pathOf([0, 4], ['U2', 'R2', 'U2', 'R2']), items: [[0, 2, '🐚'], [2, 0, '🐚']], wallIcon: '🪸', hero: '🏊', prize: '🛟' }, words: ARROW_WORDS } },
+
+    { id: 'A49', tier: 'young', unit: 12, icon: '🚩', title: 'Lifeguard Rules', skill: 'If this, then that', engine: 'rules',
+      goal: 'Write the pool rules. Then watch the swimmer follow them.',
+      steps: ['👆 Tap a box next to a sign.', '👆 Tap what to do then. One picture is not needed.', '▶ Press Go.'],
+      say: 'Write the pool rules. Tap a box next to a sign. Then tap what to do. One picture is not needed. Then press go.',
+      notes: ['Four rules and a spare picture that fits none of them.'],
+      cfg: { conditions: [{ e: '🟢', name: 'green flag', answer: '🏊' }, { e: '🔴', name: 'red flag', answer: '🪑' }, { e: '⛈️', name: 'storm', answer: '🏠' }, { e: '☀️', name: 'hot sun', answer: '🧴' }],
+             items: [{ e: '🏊', say: 'Swim!' }, { e: '🪑', say: 'Sit and wait.' }, { e: '🏠', say: 'Go inside.' }, { e: '🧴', say: 'Sun cream.' }, { e: '🍦', say: 'Ice cream.' }],
+             playOrder: ['☀️', '🟢', '⛈️', '🔴', '🟢'], hero: '🧒' } },
+
+    { id: 'A50', tier: 'young', unit: 12, icon: '🐙', title: 'Sea Memory', skill: 'Memory', engine: 'matchPairs',
+      goal: 'Six pairs of sea friends. Remember where they hide!',
+      steps: ['👆 Tap a card to flip it.', '👆 Tap a second card. Do they match?', '🧠 Remember each picture. Match all six pairs!'],
+      say: 'Six pairs of sea friends. Tap a card to flip it. Then tap a second card. Remember where each picture hides.',
+      notes: ['A bigger Memory Match: 12 cards.', 'Stars: 3 for up to 5 wrong flips, 2 for up to 9.'],
+      cfg: { pairs: ['🐙', '🐠', '🦀', '🐢', '🐬', '🦈'], cols: 4, stars: [5, 9], helpAfter: 9 } },
+
+    { id: 'A51', tier: 'young', unit: 13, icon: '🎹', title: 'Piano Keys', skill: 'Music: note names', engine: 'piano',
+      goal: 'Find the piano keys by their letters.',
+      steps: ['👀 Look at the big letter.', '👆 Tap the piano key with that letter.', '🙈 Last round the letters hide!'],
+      say: 'Find the piano keys by their letters. Look at the big letter. Then tap the key with that letter.',
+      notes: ['White keys go C D E F G A B, then start again. C sits just left of each pair of black keys.', 'Each note has its own colour in every piano game.'],
+      cfg: { mode: 'find', findSay: FIND_SAY, winTitle: 'You know the piano!', rounds: [
+        { notes: ['C', 'D', 'E', 'F', 'G'], labels: true }, { notes: ['A', 'B', 'E', 'C', 'G'], labels: true }, { notes: ['C', 'E', 'G', 'D'], labels: false } ] } },
+
+    { id: 'A52', tier: 'young', unit: 13, icon: '🎵', title: 'Copy the Tune', skill: 'Music: sequences', engine: 'piano',
+      goal: 'Listen to the tune. Play it back.',
+      steps: ['👂 Press Listen. Watch which keys light up.', '👆 Tap the same keys in the same order.', '🔁 Wrong note? Listen again.'],
+      say: 'Listen to the tune, then play it back. Press listen and watch which keys light up. Then tap the same keys in the same order.',
+      notes: ['A tune is a program for your fingers: notes in order.'],
+      cfg: { mode: 'copy', winTitle: 'Little pianist!', rounds: [
+        { name: 'Hot Cross Buns', tune: ['E', 'D', 'C'] }, { name: 'Mary Had a Little Lamb', tune: ['E', 'D', 'C', 'D', 'E', 'E', 'E'] }, { name: 'Twinkle Twinkle', tune: ['C', 'C', 'G', 'G', 'A', 'A', 'G'] } ] } },
+
+    { id: 'A53', tier: 'young', unit: 13, icon: '🔁', title: 'Melody Loop', skill: 'Music: loops', engine: 'piano',
+      goal: 'Make the whole song with one repeat block.',
+      steps: ['👀 Find the part of the song that repeats.', '👆 Tap those keys to put them in the loop.', '➕ Set how many times. Then press Play.'],
+      say: 'Make the whole song with one repeat block. Find the part that repeats. Put it in the loop. Set how many times. Then press play.',
+      notes: ['Songs repeat, just like loops in code.'],
+      cfg: { mode: 'loop', winTitle: 'Loop composer!', rounds: [
+        { target: ['C', 'G', 'C', 'G', 'C', 'G'], body: ['C', 'G'], n: 3 },
+        { target: ['E', 'D', 'C', 'E', 'D', 'C'], body: ['E', 'D', 'C'], n: 2 },
+        { target: ['G', 'G', 'E', 'G', 'G', 'E', 'G', 'G', 'E'], body: ['G', 'G', 'E'], n: 3 } ] } },
+
+    { id: 'A54', tier: 'young', unit: 13, icon: '🐛', title: 'Fix the Tune', skill: 'Music: bugs', engine: 'piano',
+      goal: 'The robot plays one wrong note. Find the bug and fix it.',
+      steps: ['🎵 Press Real song. Then press Robot song.', '🐛 Tap the note that sounds wrong.', '👆 Tap the piano key that fixes it.'],
+      say: 'The robot plays one wrong note. Listen to the real song, then the robot song. Tap the wrong note. Then tap the key that fixes it.',
+      notes: ['Debugging by ear: compare what should happen with what did happen.'],
+      cfg: { mode: 'bug', winTitle: 'Tune fixer!', rounds: [
+        { name: 'Twinkle Twinkle', tune: ['C', 'C', 'G', 'G', 'A', 'A', 'G'], bug: { i: 4, wrong: 'B' } },
+        { name: 'Mary Had a Little Lamb', tune: ['E', 'D', 'C', 'D', 'E', 'E', 'E'], bug: { i: 2, wrong: 'G' } },
+        { name: 'Ode to Joy', tune: ['E', 'E', 'F', 'G', 'G', 'F', 'E', 'D'], bug: { i: 3, wrong: 'C' } } ] } },
+
+    { id: 'A55', tier: 'young', unit: 14, icon: '🥕', title: 'Bunny Hop 3', skill: 'Planning steps', engine: 'arrowPath',
+      goal: 'Pick up both carrots, then hop home.',
+      steps: ['👀 Find the two carrots 🥕 and the home 🏠.', '👆 Plan a path past both carrots.', '▶ Press Go.'],
+      say: 'Pick up both carrots, then hop home. Plan a path past both carrots. Then press go.',
+      notes: ['A longer plan: nine hops, two things to collect.'],
+      cfg: { max: 11, winTitle: 'Home with the carrots!', board: { w: 4, h: 4, start: [0, 3], goal: [0, 0], walls: [[1, 1], [2, 1], [1, 2]], items: [[3, 3, '🥕'], [3, 0, '🥕']], wallIcon: '🪨', hero: '🐰', prize: '🏠' } } },
+
+    { id: 'A56', tier: 'young', unit: 14, icon: '🙈', title: 'Guess My Animal', skill: 'Yes / no questions', engine: 'guessWho',
+      goal: 'Ask yes or no questions to find my secret animal.',
+      steps: ['👆 Tap a question. I answer yes or no.', '❌ Animals that do not fit get crossed out.', '👆 Tap the animal when you know it.'],
+      say: 'Ask yes or no questions to find my secret animal. Tap a question. Animals that do not fit get crossed out. Then tap the animal.',
+      notes: ['Each yes or no splits the group in two. Computers sort things this way (a decision tree).'],
+      cfg: { animals: [
+          { e: '🦅', name: 'eagle', f: { fly: 1, legs: 1 } }, { e: '🐟', name: 'fish', f: { water: 1 } }, { e: '🦁', name: 'lion', f: { legs: 1, fur: 1, big: 1 } },
+          { e: '🐘', name: 'elephant', f: { legs: 1, big: 1 } }, { e: '🐍', name: 'snake', f: {} }, { e: '🐧', name: 'penguin', f: { water: 1, legs: 1 } },
+          { e: '🐶', name: 'dog', f: { legs: 1, fur: 1 } }, { e: '🦆', name: 'duck', f: { fly: 1, water: 1, legs: 1 } } ],
+        questions: [
+          { k: 'fly', q: 'Can it fly?', say: 'Can it fly?' }, { k: 'water', q: 'Does it swim?', say: 'Does it swim?' }, { k: 'legs', q: 'Does it have legs?', say: 'Does it have legs?' },
+          { k: 'fur', q: 'Is it furry?', say: 'Is it furry?' }, { k: 'big', q: 'Is it bigger than you?', say: 'Is it bigger than you?' } ],
+        rounds: [{ pool: ['🦅', '🐟', '🦁', '🐍'], secret: '🐟' }, { pool: ['🦅', '🐟', '🦁', '🐘', '🐧', '🐶'], secret: '🐘' }, { pool: ['🦅', '🐟', '🦁', '🐘', '🐍', '🐧', '🐶', '🦆'], secret: '🦆' }] } },
+
+    { id: 'A57', tier: 'young', unit: 14, icon: '🥪', title: 'Robot Chef', skill: 'Reading code', engine: 'recipe',
+      goal: 'Read the robot\'s recipe. Which sandwich will it make?',
+      steps: ['👀 Read the recipe from step 1.', '⬆️ Step 1 goes at the bottom. Each step goes on top.', '👆 Tap the sandwich the robot will make.'],
+      say: 'Read the robot\'s recipe. Which sandwich will it make? Step one goes at the bottom, and each step goes on top.',
+      notes: ['Predicting what a program makes before it runs. The last recipe has a repeat block.'],
+      cfg: { verb: 'add', rounds: [
+        { code: ['🍞', '🧀', '🍞'], opts: [['🍞', '🍅', '🍞'], ['🍞', '🧀', '🍞'], ['🧀', '🍞', '🧀']] },
+        { code: ['🍞', '🥬', '🧀', '🍅', '🍞'], opts: [['🍞', '🍅', '🧀', '🥬', '🍞'], ['🍞', '🥬', '🍅', '🧀', '🍞'], ['🍞', '🥬', '🧀', '🍅', '🍞']] },
+        { code: ['🍞', { loop: 2, body: ['🧀', '🍅'] }, '🍞'], opts: [['🍞', '🧀', '🍅', '🧀', '🍅', '🍞'], ['🍞', '🧀', '🍅', '🍞'], ['🍞', '🧀', '🧀', '🍅', '🍅', '🍞']] } ] } },
+
+    { id: 'A58', tier: 'young', unit: 14, icon: '🚂', title: 'Pattern Train 4', skill: 'Patterns', engine: 'pattern',
+      goal: 'Trickier trains. Find the missing car.',
+      steps: ['👀 Say the pattern out loud. Where does it start again?', '👆 Tap the car that goes in the ❓ spot.'],
+      say: 'Trickier trains! Say the pattern out loud. Where does it start again? Then tap the car for the question mark.',
+      notes: ['Patterns with a part that repeats twice (red red blue blue) and gaps in the middle.'],
+      cfg: { rounds: [
+        { seq: ['🔴', '🔴', '🔵', '🔵', '🔴', '🔴'], ans: '🔵', opts: ['🔴', '🟢', '🔵'] },
+        { seq: ['🍎', '🍌', '🍌', '🍇', '🍎', '🍌'], ans: '🍌', opts: ['🍇', '🍌', '🍎'] },
+        { seq: ['🌞', '🌙', '⭐', '🌞', '🌙', '⭐'], q: 4, ans: '🌙', opts: ['⭐', '🌞', '🌙'] },
+        { seq: ['🦖', '🦕', '🦕', '🦖', '🦕', '🦕'], q: 2, ans: '🦕', opts: ['🦖', '🦕', '🥚'] } ] } },
 
     /* ---------- Ages 7–9 ---------- */
     { id: 'B1', tier: 'older', unit: 0, icon: '🔁', title: 'Loop Maze', skill: 'Loops', engine: 'codeGrid',

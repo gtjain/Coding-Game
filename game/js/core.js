@@ -31,8 +31,8 @@ window.CH = window.CH || {};
   CH.sfx = (() => {
     let ctx = null;
     const st = { on: true };
-    const ac = () => {
-      if (!st.on) return null;
+    const ac = (force) => {
+      if (!st.on && !force) return null;
       if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; try { ctx = new C(); } catch (e) { return null; } }
       if (ctx.state === 'suspended') ctx.resume().catch(() => {});
       return ctx;
@@ -61,6 +61,11 @@ window.CH = window.CH || {};
       win() { const c = ac(); if (!c) return;
         [783.99, 987.77, 1174.66, 1567.98].forEach((f, i) => tone(c, { f0: f, t: i * .1, dur: .5, vol: .16, type: 'triangle', lp: 4000 })); },
       bonk() { const c = ac(); if (!c) return; tone(c, { f0: 260, f1: 120, dur: .22, vol: .25 }); },
+      // a soft piano-like note; plays even when sound effects are off, because the music is the game
+      note(f, dur = .9) { const c = ac(true); if (!c) return;
+        tone(c, { f0: f, dur, vol: .3, type: 'triangle', lp: 2600 });
+        tone(c, { f0: f * 2, dur: dur * .5, vol: .06, lp: 3600 }); },
+      honk() { const c = ac(); if (!c) return; [0, .22].forEach(t => { tone(c, { f0: 392, t, dur: .18, vol: .2, type: 'square', lp: 1200 }); tone(c, { f0: 494, t, dur: .18, vol: .14, type: 'square', lp: 1200 }); }); },
       get enabled() { return st.on; }, set enabled(v) { st.on = !!v; }
     };
   })();
@@ -88,6 +93,10 @@ window.CH = window.CH || {};
     let walls = cfg.walls || [];
     if (cfg.path) { const ps = new Set(cfg.path.map(p => p + '')); walls = []; for (let y = 0; y < H; y++) for (let x = 0; x < w; x++) if (!ps.has(x + ',' + y)) walls.push([x, y]); }
     const wallMap = new Map(walls.map(([x, y, ic]) => [x + ',' + y, ic || wallIcon]));
+    // items: things to collect on the way ([x, y, icon]); gates: closed squares that open once every item is collected
+    const items = (cfg.items || []).map(([x, y, ic]) => ({ x, y, ic })), gates = (cfg.gates || []).map(([x, y, ic]) => ({ x, y, ic: ic || '🚧' }));
+    const gateMap = new Map(gates.map(gt => [gt.x + ',' + gt.y, gt]));
+    let got = new Set(), open = false;
     const b = document.createElement('div'); b.className = 'board' + (cfg.checker ? ' chk' : '');
     b.style.setProperty('--w', w); b.style.setProperty('--h', H); if (bw) b.style.setProperty('--bw', bw + 'px');
     const cells = [];
@@ -97,6 +106,11 @@ window.CH = window.CH || {};
       if (goal && x === goal.x && y === goal.y) c.textContent = prize;
       cells.push(c); b.appendChild(c);
     }
+    const cellAt = (x, y) => cells[y * w + x];
+    function drawExtras() {
+      items.forEach((it, i) => { const c = cellAt(it.x, it.y); c.textContent = got.has(i) ? '' : it.ic; c.classList.toggle('item', !got.has(i)); });
+      gates.forEach(gt => { const c = cellAt(gt.x, gt.y); c.textContent = open ? '' : gt.ic; c.classList.toggle('wall', !open); c.classList.toggle('gate', !open); });
+    }
     const s = document.createElement('div'); s.className = 'sprite';
     s.innerHTML = `<span>${hero}</span>` + (cfg.heading != null ? '<i class="hdring" aria-hidden="true"></i>' : '');
     b.appendChild(s);
@@ -105,8 +119,9 @@ window.CH = window.CH || {};
     let pos, head, deg;
     const place = (x, y) => { s.style.left = (x * 100 / w) + '%'; s.style.top = (y * 100 / H) + '%'; };
     const turnTo = () => { if (ring) ring.style.transform = `rotate(${deg}deg)`; };
-    const reset = () => { s.classList.remove('bump', 'win'); pos = { ...start }; head = cfg.heading || 0; deg = head * 90; place(pos.x, pos.y); turnTo(); };
-    const blocked = (x, y) => x < 0 || y < 0 || x >= w || y >= H || wallMap.has(x + ',' + y);
+    const reset = () => { s.classList.remove('bump', 'win'); pos = { ...start }; head = cfg.heading || 0; deg = head * 90; place(pos.x, pos.y); turnTo(); got = new Set(); open = !items.length; drawExtras(); };
+    const blocked = (x, y) => x < 0 || y < 0 || x >= w || y >= H || wallMap.has(x + ',' + y) || (!open && gateMap.has(x + ',' + y));
+    const left = () => items.length - got.size;
     reset();
     // one command; resolves 'ok' | 'bump' | 'goal'
     async function act(op) {
@@ -118,7 +133,12 @@ window.CH = window.CH || {};
         void s.offsetWidth; s.classList.add('bump'); CH.sfx.bonk(); await sleep(450); return 'bump';
       }
       pos = { x: nx, y: ny }; place(nx, ny); CH.sfx.step(nx + ny); await sleep(STEP);
-      if (goal && nx === goal.x && ny === goal.y) { s.classList.add('win'); return 'goal'; }
+      const it = items.findIndex((t, i) => !got.has(i) && t.x === nx && t.y === ny);
+      if (it >= 0) {
+        got.add(it); CH.sfx.pop(1.6); if (!left()) open = true; drawExtras();
+        const c = cellAt(nx, ny); c.classList.remove('gotit'); void c.offsetWidth; c.classList.add('gotit');
+      }
+      if (goal && nx === goal.x && ny === goal.y && !left()) { s.classList.add('win'); return 'goal'; }
       return 'ok';
     }
     async function run(steps, onStep = () => {}) {
@@ -129,25 +149,31 @@ window.CH = window.CH || {};
         if (r === 'bump') return { ok: false, step: i };
         if (r === 'goal') { onStep(-1); return { ok: true }; }
       }
-      onStep(-1); return { ok: !goal, step: null };
+      onStep(-1); return { ok: !goal, step: null, left: left() };
     }
-    const api = { run, act, reset, cells, el: b, w, h: H, place, sprite: s, blocked };
+    const api = { run, act, reset, cells, el: b, w, h: H, place, sprite: s, blocked, left, items };
     window.__boards.push(api);
     return api;
   };
 
+  // Shortest route as arrow letters. With items, every item must be picked up first (and gates open after that).
   CH.solvePath = cfg => {
     const { w, h: H } = cfg, key = (x, y) => x + ',' + y;
     let walls = new Set((cfg.walls || []).map(([x, y]) => key(x, y)));
     if (cfg.path) { const ps = new Set(cfg.path.map(p => p + '')); walls = new Set(); for (let y = 0; y < H; y++) for (let x = 0; x < w; x++) if (!ps.has(key(x, y))) walls.add(key(x, y)); }
-    const [sx, sy] = cfg.start, [gx, gy] = cfg.goal, prev = new Map([[key(sx, sy), null]]), q = [[sx, sy]];
+    const items = (cfg.items || []).map(([x, y]) => key(x, y)), full = (1 << items.length) - 1;
+    const gates = new Set((cfg.gates || []).map(([x, y]) => key(x, y)));
+    const [sx, sy] = cfg.start, [gx, gy] = cfg.goal, sk = key(sx, sy) + ',0', prev = new Map([[sk, null]]), q = [[sx, sy, 0]];
+    let endKey = null;
     while (q.length) {
-      const [x, y] = q.shift(); if (x === gx && y === gy) break;
-      for (const d of CH.ORDER) { const nx = x + CH.DIRS[d][0], ny = y + CH.DIRS[d][1], k = key(nx, ny);
-        if (nx < 0 || ny < 0 || nx >= w || ny >= H || walls.has(k) || prev.has(k)) continue; prev.set(k, [key(x, y), d]); q.push([nx, ny]); }
+      const [x, y, m] = q.shift(); if (x === gx && y === gy && m === full) { endKey = key(x, y) + ',' + m; break; }
+      for (const d of CH.ORDER) { const nx = x + CH.DIRS[d][0], ny = y + CH.DIRS[d][1], ck = key(nx, ny);
+        if (nx < 0 || ny < 0 || nx >= w || ny >= H || walls.has(ck) || (gates.has(ck) && m !== full)) continue;
+        const bit = items.indexOf(ck), nm = bit >= 0 ? m | (1 << bit) : m, k = ck + ',' + nm;
+        if (prev.has(k)) continue; prev.set(k, [key(x, y) + ',' + m, d]); q.push([nx, ny, nm]); }
     }
-    const out = []; let k = key(gx, gy);
-    while (prev.get(k)) { const [pk, d] = prev.get(k); out.unshift(d); k = pk; }
+    const out = []; let k = endKey;
+    while (k && prev.get(k)) { const [pk, d] = prev.get(k); out.unshift(d); k = pk; }
     return out;
   };
   CH.toTurns = (dirs, heading = 0) => {

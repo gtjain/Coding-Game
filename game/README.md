@@ -24,6 +24,10 @@ Progress lives in the browser (localStorage, key `code-hoppers-v3`) on the phone
 
 Engines call `g.mistake()` on a wrong try and `g.finish({title})` on success. Stars: 0 mistakes = 3, 1 = 2, 2+ = 1.
 
+Board options (any grid game): `items: [[x, y, '🥚']]` must all be collected before the goal counts; `gates: [[x, y, '🚧']]` stay shut until every item is collected. `arrowPath` also takes `went` (the trip already driven, for "go back home" puzzles).
+
+Engines for ages 4–6 added in v3.4: `pixelPaint` (colour code), `guessWho` (yes / no questions), `swapSort` (swap neighbours), `eventButtons` (when I tap…), `forEach` (one loop per item, optional IF), `recipe` (read a recipe), and `piano` with `mode` `find`, `copy`, `loop` or `bug`.
+
 ## Record the voice
 ```
 node tools/phrases.mjs > tools/phrases.json
