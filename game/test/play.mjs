@@ -68,6 +68,8 @@ const errors = [];
 p.on('pageerror', e => errors.push(e.message));
 p.on('console', m => m.type() === 'error' && errors.push(m.text()));
 await p.goto(PAGE);
+// playing every card takes longer than a kid's 15 minutes; the timer has its own tests below
+await p.evaluate(() => window.__app.S.profiles.forEach(k => { if (k.time) k.time.left = 4 * 3600; }));
 const wait = ms => p.waitForTimeout(ms);
 const open = async id => {
   if ((await p.evaluate(() => location.hash)) === '#' + id) { await p.evaluate(() => { location.hash = 'home'; }); await p.waitForSelector('#home:not([hidden])'); }
